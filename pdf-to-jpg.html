@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="theme-color" content="#0f1f2e">
+<link rel="icon" href="assets/toolrivo-logo.svg" type="image/svg+xml">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>PDF to JPG Converter - Free Online Tool | ToolRivo</title>
+
+  <meta name="description" content="Convert PDF pages to JPG images online for free with ToolRivo. Fast, simple and secure PDF to JPG converter. No signup required.">
+
+  <meta name="keywords" content="PDF to JPG, PDF to image, convert PDF to JPG, PDF converter, free PDF tools">
+
+  <meta name="author" content="ToolRivo">
+  <meta name="robots" content="index, follow">
+
+  <link rel="canonical" href="https://mureedabbas1.github.io/ToolRivo/pdf-to-jpg.html">
+
+  <meta property="og:title" content="Free PDF to JPG Converter | ToolRivo">
+  <meta property="og:description" content="Convert PDF pages into JPG images online for free with ToolRivo.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://mureedabbas1.github.io/ToolRivo/pdf-to-jpg.html">
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f7fb;
+      color: #222;
+    }
+
+    header {
+      background: #111827;
+      color: white;
+      padding: 25px 20px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 28px;
+    }
+
+    .home-link {
+      display: inline-block;
+      margin-top: 12px;
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .home-link:hover {
+      text-decoration: underline;
+    }
+
+    .container {
+      max-width: 850px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 5px 25px rgba(0,0,0,0.08);
+      text-align: center;
+    }
+
+    h2 {
+      margin-top: 0;
+      font-size: 24px;
+    }
+
+    .description {
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 25px;
+    }
+
+    .upload-box {
+      display: block;
+      border: 2px dashed #9ca3af;
+      border-radius: 12px;
+      padding: 40px 20px;
+      cursor: pointer;
+      background: #fafafa;
+      transition: 0.2s;
+    }
+
+    .upload-box:hover {
+      border-color: #2563eb;
+      background: #f0f6ff;
+    }
+
+    .upload-box strong {
+      display: block;
+      font-size: 18px;
+      margin-bottom: 8px;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    .file-name {
+      margin-top: 15px;
+      color: #555;
+      word-break: break-word;
+    }
+
+    button {
+      border: none;
+      border-radius: 8px;
+      padding: 12px 22px;
+      font-size: 16px;
+      cursor: pointer;
+      margin: 8px;
+    }
+
+    #convertBtn {
+      background: #2563eb;
+      color: white;
+    }
+
+    #convertBtn:hover:not(:disabled) {
+      background: #1d4ed8;
+    }
+
+    .download-btn {
+      background: #16a34a;
+      color: white;
+      text-decoration: none;
+      display: inline-block;
+      padding: 10px 15px;
+      border-radius: 8px;
+    }
+
+    .download-btn:hover {
+      background: #15803d;
+    }
+
+    button:disabled {
+      background: #9ca3af !important;
+      cursor: not-allowed;
+    }
+
+    #status {
+      margin: 20px 0;
+      font-weight: bold;
+      color: #444;
+      line-height: 1.6;
+    }
+
+    .result {
+      margin-top: 25px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+    }
+
+    .page-card {
+      background: #f8fafc;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 15px;
+    }
+
+    .page-card img {
+      width: 100%;
+      border-radius: 6px;
+      margin-bottom: 10px;
+    }
+
+    .info {
+      margin-top: 35px;
+      text-align: left;
+      line-height: 1.7;
+    }
+
+    .info h3 {
+      margin-top: 25px;
+      color: #1e40af;
+    }
+
+    footer {
+      text-align: center;
+      padding: 30px 20px;
+      color: #666;
+      font-size: 14px;
+      line-height: 1.8;
+    }
+
+    footer a {
+      color: #2563eb;
+      text-decoration: none;
+      margin: 0 5px;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        margin: 20px auto;
+        padding: 12px;
+      }
+
+      .card {
+        padding: 20px;
+      }
+
+      header h1 {
+        font-size: 23px;
+      }
+
+      button {
+        width: 100%;
+        margin: 8px 0;
+      }
+
+      .download-btn {
+        width: 100%;
+      }
+    }
+  </style>
+<style>
+/* ToolRivo shared 3D tool-page layer */
+body{perspective:1400px;overflow-x:hidden}
+body::before{content:"";position:fixed;inset:-20%;z-index:-5;pointer-events:none;background:radial-gradient(circle at 15% 20%,rgba(124,108,255,.16),transparent 22%),radial-gradient(circle at 85% 18%,rgba(62,166,255,.12),transparent 20%),radial-gradient(circle at 55% 85%,rgba(164,91,255,.09),transparent 24%);animation:tr3dAmbient 12s ease-in-out infinite alternate}
+@keyframes tr3dAmbient{from{transform:translate3d(-1%,0,0)}to{transform:translate3d(1%,-1%,0) scale(1.05)}}
+.card,.tool-card,.tool-box,.container,.panel,.upload-box,.result-box,.content,.feature-card,.contact-card,.faq-item{transform-style:preserve-3d;transition:transform .18s ease-out,box-shadow .25s ease,border-color .25s ease}
+.card:hover,.tool-card:hover,.feature-card:hover,.contact-card:hover{border-color:rgba(167,155,255,.58)!important;box-shadow:0 28px 60px rgba(0,0,0,.4),0 15px 45px rgba(124,108,255,.15),inset 0 1px rgba(255,255,255,.08)}
+.card::after,.tool-card::after,.tool-box::after,.panel::after,.upload-box::after,.result-box::after{content:"";position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:linear-gradient(120deg,rgba(255,255,255,.08),transparent 32%,transparent 70%,rgba(62,166,255,.05));opacity:.55}
+button,.btn,.download,.primary-btn{box-shadow:0 10px 25px rgba(124,108,255,.22),inset 0 1px rgba(255,255,255,.16);transition:transform .2s,box-shadow .2s}
+button:hover,.btn:hover,.download:hover,.primary-btn:hover{transform:translateY(-2px);box-shadow:0 15px 32px rgba(124,108,255,.35),inset 0 1px rgba(255,255,255,.2)}
+.tr3d-orb{position:fixed;width:150px;height:150px;border-radius:50%;pointer-events:none;z-index:-2;background:radial-gradient(circle at 30% 25%,rgba(255,255,255,.2),rgba(124,108,255,.17) 18%,rgba(62,166,255,.06) 48%,transparent 70%);filter:blur(2px);opacity:.5;animation:tr3dFloat 10s ease-in-out infinite}
+.tr3d-orb.o1{top:18%;left:-55px}.tr3d-orb.o2{top:62%;right:-65px;animation-delay:-4s;width:190px;height:190px}
+@keyframes tr3dFloat{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(24px,-32px,0)}}
+@media(max-width:700px){.card,.tool-card,.tool-box,.container,.panel,.upload-box,.result-box,.content,.feature-card,.contact-card,.faq-item{transform:none!important}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+</style><style id="toolrivo-3d-premium-tools">
+body{background:radial-gradient(circle at 50% -10%,rgba(124,108,255,.2),transparent 35%),#070914!important;perspective:1600px}
+body:after{content:"";position:fixed;inset:0;z-index:-3;pointer-events:none;background:linear-gradient(rgba(124,108,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(124,108,255,.03) 1px,transparent 1px);background-size:42px 42px;transform:perspective(650px) rotateX(58deg) translateY(35%);transform-origin:center bottom}
+.card,.tool-box,.upload-box,.result-box,.container,.panel{transform-style:preserve-3d;box-shadow:0 30px 60px rgba(0,0,0,.42),0 8px 0 rgba(7,9,20,.8),inset 0 1px rgba(255,255,255,.1)!important}
+.card h1,.card h2,.card h3,.tool-box h1,.tool-box h2,.tool-box h3{transform:translateZ(35px)}
+.card button,.card input,.card select,.card textarea,.tool-box button,.tool-box input,.tool-box select,.tool-box textarea{transform:translateZ(18px)}
+@media(max-width:800px){.card,.tool-box,.upload-box,.result-box,.container,.panel{transform:none!important}}
+</style><style id="toolrivo-new-logo">.logo-mark{background-image:url("data:image/webp;base64,UklGRiIMAABXRUJQVlA4IBYMAABQNwCdASq0ALQAPnk6mUkkoyKhJPF6wJAPCWRu3rTOFPtcI8lmx/3z8f/2npP6P8zXpvnc/qL2C/1m6ePmf/ZX1rfTD/nfUA/ufUl+hR5cnszf2n/rMPXfnokeefOk+9GMw0TyZ/VahzKqOFAOYALJVdTR6WWow+vQ5//G6Xyl5eU9aSuz+kVx13fmz/0URnBRM02KqWx1gjjtp790DXqYpkvcOdUET3zfOsMLeV2LshPsLyDIGaRjUrGA2l0eEJziQHqvA33YbkQXy9p/r81uwPhRSyYdhD1UnZY7XLeazEi+5Zukxwel9E7MwMtfP3S7Kxep9ESi+mlVHtPWsaNq7ICb000A4KMaNOdvl5cgzNAfZGsxz6yIcwIKiuAF/Z+zUY7A6E+RdIg/CNa3wgJ5ICBYKPCo2Bm5bjY/xSedhm7tks1TDZCR+nZnDEev6NjTXI4/0SdoTb3ClL630JDTUu1A5OKa3LS14gCs3bJ6eST/5pj6Vt/6fi1HS80JmWD1ak96MDbHF+dKuIofNIkIRWi2RHOwxWEI5rTpIbAdiO/eXledZCKrVMRD7nTDWBq4NcC5Bzj/adPbu5BMqo4UA4kAAP78598S7C0qNgAACPrbk6b1NIuRfIj+quZbGzvivSdNmpilVZwLsJuBTY3CV8Hbx7bMr6AzuEvE+LXhNA/qRKt7FdOkcU45FXrk1zGys+T5+LPEDhOkzrSzbJmkuWIccb2Eb9zx7tVCu2rPpPg2EvyXOTpI1ezQ3zaYZy9kBVQY9sy3gbSDAxDA4OFYm8Fej6bD80fhmcDDIzkdFoWOf7bkhzeoKYe/sQdN6wsm4qTffYqD3Qq2aBhKEdp5eFeSX9RXS6+bCNJvCxVqOm5168gdJLdAKti1372p7CRHTBqMrDwlevsbX8GYJuQ9iRYha6rz/+3C2XJmpqa5qWLqmLQ08yuOVXj3P8U2irphXy81KchBwyXFNx+iYhe+5QQm6e+bAiygPi0QZFrU7UWZ47MJLfVqJOZ5VRvnlI6XH04Uh1u05+yKIDTtsA1/Gi/V3cHRfJkabbunqZfSNTcEpMIPWn0JoDrNDOwQt00p9g4Z274GUSU0HQNu/k7M6FWPJ7CjfHpfhTtozCtD/JR3RH3NqQ2Y0QtDhHb0c+DOd5YG+lKe5sxEeePH7Lou9t4/RIR94ugg9LM3kuRiWvEiAKqLjxK12lI/9tm6rFXDeud4/5B50KX3vaHV1zmKSkLDS5GjCOlj5hcpmPNo1ibHELJMxYXcx04TBmDwLcLIVcW/fwaYinSQzyoennzeeEihXna7huNHQk67LDpBXB8FQ7M/SOpCEgGUS0uSG7umJ7rdPXzDTcX82sNs2SYFfkyIUnb1kLisbSCn+oufePuJQ2w2OvIuz5AGYRJBxqIy2GHKa6UPMh2tYQKln+A28krcrt7BRv/91R0eP+0x5I7ZGA0Z89WlKCvzYz4yWp9+xdq4bg8ZTIwsoTyvzby4Pxi1Nh32wzOYTXUOwO+R8bnrKvbnt7GwYtilm6ct85e8v/zdeERXcqPZAyQX9K+VabjSyl/gyARfdvp+DnWZV6ROqhVJQ1FJ0WoV2KHeb8Rwzg4AT9z3YMSsGlLNIPpn3heaXXizUWqmJFoNjKMCbrmiMUyWdaiiqUZ2RD0flSSife35V/bLMhkV57jkMCUBq3Oo0DU/xj+Yx+mfdrffUw32MF0Uv3QG5mQqIJA5b2RQHNi7AVzaceRgDk4iJaGZnwP0cxFLeRoT1dKQv1F2ZoeQR0UtEwgvnvuJFhZpC96rzfgKIbyrZr4Yp3yuSKTgkYOsM8kXDPzPfjrzB3WtrH8Qoi+Kc8jGIf7+DTrLJ8DlbMgdlfUQ58EWSJL2LG5fC2XiUZbAumy+CP4wn6UVCo0td24MYcT4R/P/IP6rH3FBnVqj1N620tbh+mfoGxbfw81cVYPbzTVXjdVMenBYnTATkuBJJO4bM7VKfpQPCwWmYn/Q8NNMwYL37ErycZN+aXrKU6hgN/FyUBpsYlFPFGjmFHRlpyYMXh8KFf0rDUrJ+LwoF4xpSqLGnEng6po/iNr7LQv7z8mCeZBJCyAJvwCqV9lWTQ5myWEYWTgPMSsOnNpT7tUKnPHT7JBnxLR3sNAMCX/EF5nczjr1uVH3l27/whCWMow1w1uDgKG5L97QxhvGjvhQAruOEx/236aVXlGllQ2UwoPwX3yhoJw2I/P5L9qTBE0MwmeOeUGQd+ebTx1oKhFZP7kbPkdrnhxI8fuXmZtIwyLv/2iA46pIz4exPVpr8lI0ACQ0xUALvXpW9/EA+n6GCYhpv2bCgcC4bZgB3vW3AP9+99R/4RL9Ui9nBzf7nuZJQ+GTy97kQ74Lo4dkWVHH7+itaavfyZNaOiOJwB8E9e3P6iW7lszXn3yXU2LpU3O0t65c8U2tQfAyKIcrMmPgLNxBcBgH9eB1JteHnQ81pSFicry32TMAazQAoLOYp9bPK8waR8L638Do4Qz40ROxmwzclruvUFtTdF+EacrtSGuzNfkSD1Wq88deUXN5IZJlpJ289RFLi/Jy5D0WtJ9w2cnI4y4bVgIaARZAzWWUQEAKrCcIuzwmX+qfnfHEzU1JH6NSJaQsPMsa72dMHzKUkmHhQ2jAiccygH6/rMJvNgywPyTt5H0e7gLG92nc7LThOzj8pXNmahxW6ZB5K8ZgNfgFujTj/pfrd0TYArUjW/9zGMnk5v4sBegz6O3/jyBF+scyF5iP3GeBPqn2eXCbzSKu4sC4oAi9IFRJBKoGJiQ9d8uXYt7zsjbb26Yef/vfr0+8OqJPlCNW8yL5j6bCnFncZHrzFYvAw6qNk3i4Chr5rkCbh6dcQOPrMn6sUYv/qAKEgdLdvD6FqcbvuUuOGD6+qadPy5IkufMwskMgdkuAFNrP2XuAE3pKAKzICpR8+WVDA+Kp7vIoC/qxE6bsgi2WOSI1pGUne72JUGKyjHEUUeFi84u4QtKwcMJN9oXwwjzVratB1S8a+05VrZ+cLhQnAs/BSXJ/guMaVau0BT/hQlvJt8qdp1LgslcrVy88aj8omuvdGf57713PlrNW1kgmwiCOJMC+T/l5B+ixnbod/D6+cjJckW4zbkQMB79dX9hdm2ACyREOYgqTmVHEbU35U8FT4sFy1uiR7L49EUIFU/bjjZ5QNgOIdoEW1YfctVdzhvgKcqAQgYURkto2MHaNDRKXMei1BUbHQbwg6cvANxUxpPvxVTnibWW/N8B865V57vHDv0l2OKAiC+YCFjCEvfeZBqAP4rYOtAhYMIEbJ+xmq4RDcHMONTWEdffT1SLrMRp/rZVHzQ4MOjBBAU75jF4sKN46kPT4q0QR50f8A0uyHty9H3mJ0dNHibCR21vUnSq9eWeRHXJIN/Vqboupzv7SojSWepkIupQvsNvSDyoOFsKaEnso2woJLn6i65S/NhR9cmhnL7+jsDfN26LWaeZFUcRgbLDu741AeTITI35OWrmiy0ySEjQNW+UNZX7TPZF5aFfAsv6+t9fiA5h1UmaRkjWK9vOaD7S9UTEegL7rSKpbavBgR6zr/Mp76o0Q7j9Qh0vM0IYu46fEo6JJSn4tdke4vprfT8HziiZFlKv4tGammEGNJ4R9oFo03XqsxFG7Q5K84zqWhjR1gUccFJwknopDzVfVOB/3UKImGuaBKEDwLtULPyVazZ4N6MIhrT6vLf4RaeSVcNe7Fa8JoKp67fYaWgYAT2EB+fVVC8sFxhmgjxOIOak2+NnFLBRTw3yTasQcxSeAH4r2r076JW6uWd1WE2aPeGm6f4XgysyX+Fhv6H60U2epCUKbA/vQ5rE38Q+RukUiWvh9xDTABdhDtOEz5UQgvdaICXCTamN8CerdlEYSBhNJ+WfK4ekyFKiJPY9YijSX2guL3cLS+ezTBvGfOKdYW5t02KCyyafN7/8dr0Gzj5TZkoaODfE8RjeFJkBtNHj/ZVZ79y++4i2jnvZshYKEFrSv5uDOPVDF4zRhHHF01DzGG7BiwzOwr1nyLRjfFiXfkQ4/VBp4SL5YC2f9WbAAmELA6+ZO9jgpzlAy4x7R6eJ4ngbgnkQ19mzSBQyrAg2/imMj5IvkAAAAAATaEQAAAAAA")!important;background-size:cover!important;background-position:center!important;font-size:0!important;box-shadow:0 8px 24px rgba(93,76,255,.42),0 0 22px rgba(42,169,255,.18)!important;border:1px solid rgba(255,255,255,.18)!important;transform:translateZ(22px) scale(1.05);}.logo{transform-style:preserve-3d}.logo:hover .logo-mark{transform:translateZ(32px) rotateY(-10deg) rotateX(7deg) scale(1.08);transition:.25s ease}</style><style id="toolrivo-logo-final">
+.logo-mark{background-image:url("assets/toolrivo-logo.svg")!important;background-color:#080b1b!important;background-size:cover!important;background-position:center!important;color:transparent!important;font-size:0!important;border:1px solid rgba(164,153,255,.45)!important;box-shadow:0 8px 24px rgba(91,82,220,.38),0 0 28px rgba(24,207,255,.14)!important;overflow:hidden}
+</style><script type="application/ld+json">{"@context":"https://schema.org","@type":"WebApplication","name":"PDF to JPG Converter - Free Online Tool | ToolRivo","url":"https://mureedabbas1.github.io/ToolRivo/pdf-to-jpg.html","applicationCategory":"UtilitiesApplication","operatingSystem":"Any","isAccessibleForFree":true,"description":"Convert PDF pages to JPG images online for free with ToolRivo. Fast, simple and secure PDF to JPG converter. No signup required."}</script>
+</head>
+
+<body>
+
+<header>
+
+  <h1>ToolRivo - PDF to JPG Converter</h1>
+
+  <a
+    class="home-link"
+    href="https://mureedabbas1.github.io/ToolRivo/"
+  >
+    ← Back to ToolRivo
+  </a>
+
+</header>
+
+
+<div class="container">
+
+  <div class="card">
+
+    <h2>PDF to JPG Converter</h2>
+
+    <p class="description">
+      Convert PDF pages into high-quality JPG images online for free.
+      Your files are processed directly in your browser.
+    </p>
+
+
+    <label class="upload-box" for="pdfFile">
+
+      <strong>📄 Choose PDF File</strong>
+
+      <span>
+        Click here to select your PDF
+      </span>
+
+      <input
+        type="file"
+        id="pdfFile"
+        accept="application/pdf,.pdf"
+      >
+
+    </label>
+
+
+    <div
+      class="file-name"
+      id="fileName"
+    >
+      No file selected
+    </div>
+
+
+    <button
+      id="convertBtn"
+      disabled
+    >
+      Convert PDF to JPG
+    </button>
+
+
+    <div id="status"></div>
+
+
+    <div
+      class="result"
+      id="result"
+    ></div>
+
+
+    <div class="info">
+
+      <h3>How to Convert PDF to JPG?</h3>
+
+      <ol>
+        <li>Select your PDF file.</li>
+        <li>Click the "Convert PDF to JPG" button.</li>
+        <li>Wait while the PDF pages are converted.</li>
+        <li>Download each JPG image.</li>
+      </ol>
+
+
+      <h3>Is This PDF Converter Free?</h3>
+
+      <p>
+        Yes. ToolRivo PDF to JPG Converter is free to use and does not
+        require registration.
+      </p>
+
+
+      <h3>Is My PDF Uploaded?</h3>
+
+      <p>
+        No. The conversion is performed directly inside your web browser.
+        Your PDF is not uploaded to our server by this tool.
+      </p>
+
+
+      <h3>What PDF Files Are Supported?</h3>
+
+      <p>
+        This tool works with standard PDF files that can be opened by
+        modern web browsers.
+      </p>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<footer>
+
+  <p>
+    <strong>ToolRivo ✦</strong>
+  </p>
+
+  <p>
+    Free online tools for everyone.
+  </p>
+
+  <p>
+
+    <a href="https://mureedabbas1.github.io/ToolRivo/privacy-policy.html">
+      Privacy Policy
+    </a>
+
+    •
+
+    <a href="https://mureedabbas1.github.io/ToolRivo/terms.html">
+      Terms & Conditions
+    </a>
+
+    •
+
+    <a href="https://mureedabbas1.github.io/ToolRivo/about.html">
+      About
+    </a>
+
+    •
+
+    <a href="https://mureedabbas1.github.io/ToolRivo/contact.html">
+      Contact
+    </a>
+
+  </p>
+
+  <p>
+    © 2026 ToolRivo. All rights reserved.
+  </p>
+
+</footer>
+
+
+<!-- PDF.js -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+
+<script>
+
+  pdfjsLib.GlobalWorkerOptions.workerSrc =
+    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+
+
+  const pdfFile =
+    document.getElementById("pdfFile");
+
+  const convertBtn =
+    document.getElementById("convertBtn");
+
+  const fileName =
+    document.getElementById("fileName");
+
+  const status =
+    document.getElementById("status");
+
+  const result =
+    document.getElementById("result");
+
+
+  let selectedFile = null;
+
+
+  pdfFile.addEventListener("change", function () {
+
+    selectedFile = this.files[0];
+
+    result.innerHTML = "";
+    status.textContent = "";
+
+
+    if (selectedFile) {
+
+      if (selectedFile.type !== "application/pdf") {
+
+        alert("Please select a valid PDF file.");
+
+        selectedFile = null;
+        fileName.textContent = "No file selected";
+        convertBtn.disabled = true;
+
+        return;
+      }
+
+
+      fileName.textContent =
+        "Selected: " + selectedFile.name;
+
+      convertBtn.disabled = false;
+
+    } else {
+
+      fileName.textContent =
+        "No file selected";
+
+      convertBtn.disabled = true;
+
+    }
+
+  });
+
+
+  convertBtn.addEventListener("click", async function () {
+
+    if (!selectedFile) {
+      return;
+    }
+
+
+    convertBtn.disabled = true;
+
+    result.innerHTML = "";
+
+    status.textContent =
+      "Converting PDF... Please wait.";
+
+
+    try {
+
+      const arrayBuffer =
+        await selectedFile.arrayBuffer();
+
+
+      const pdf =
+        await pdfjsLib.getDocument({
+          data: arrayBuffer
+        }).promise;
+
+
+      status.textContent =
+        "Converting " +
+        pdf.numPages +
+        " page(s)...";
+
+
+      for (
+        let pageNumber = 1;
+        pageNumber <= pdf.numPages;
+        pageNumber++
+      ) {
+
+        const page =
+          await pdf.getPage(pageNumber);
+
+
+        const scale = 2;
+
+
+        const viewport =
+          page.getViewport({
+            scale: scale
+          });
+
+
+        const canvas =
+          document.createElement("canvas");
+
+
+        const context =
+          canvas.getContext("2d");
+
+
+        canvas.width =
+          viewport.width;
+
+        canvas.height =
+          viewport.height;
+
+
+        await page.render({
+          canvasContext: context,
+          viewport: viewport
+        }).promise;
+
+
+        const jpgData =
+          canvas.toDataURL(
+            "image/jpeg",
+            0.92
+          );
+
+
+        const pageCard =
+          document.createElement("div");
+
+
+        pageCard.className =
+          "page-card";
+
+
+        const image =
+          document.createElement("img");
+
+
+        image.src =
+          jpgData;
+
+
+        image.alt =
+          "PDF page " + pageNumber;
+
+
+        const download =
+          document.createElement("a");
+
+
+        download.href =
+          jpgData;
+
+
+        download.download =
+          selectedFile.name.replace(
+            /\.pdf$/i,
+            ""
+          ) +
+          "-page-" +
+          pageNumber +
+          ".jpg";
+
+
+        download.textContent =
+          "Download Page " +
+          pageNumber;
+
+
+        download.className =
+          "download-btn";
+
+
+        pageCard.appendChild(image);
+
+        pageCard.appendChild(download);
+
+        result.appendChild(pageCard);
+
+      }
+
+
+      status.textContent =
+        "✅ Conversion complete! Download your JPG images below.";
+
+
+    } catch (error) {
+
+      console.error(error);
+
+      status.textContent =
+        "❌ Could not convert this PDF. Please try another PDF file.";
+
+    }
+
+
+    convertBtn.disabled = false;
+
+  });
+
+</script>
+
+<script>/* ToolRivo shared 3D tool-page interaction */
+(function(){
+const b=document.body;["o1","o2"].forEach(c=>{const o=document.createElement("div");o.className="tr3d-orb "+c;b.appendChild(o)});
+if(matchMedia("(prefers-reduced-motion: reduce)").matches||innerWidth<701)return;
+const els=[...document.querySelectorAll(".card,.tool-card,.tool-box,.feature-card,.contact-card,.panel,.upload-box,.result-box,.content")];
+els.forEach(el=>{el.addEventListener("pointermove",e=>{const r=el.getBoundingClientRect(),x=e.clientX/r.width-(r.left/r.width)-.5,y=e.clientY/r.height-(r.top/r.height)-.5;el.style.transform="perspective(950px) rotateX("+(-y*4).toFixed(2)+"deg) rotateY("+(x*5).toFixed(2)+"deg) translateY(-4px)"});el.addEventListener("pointerleave",()=>el.style.transform="")});
+})();
+</script></body>
+</html>
