@@ -60,10 +60,37 @@ function bindPage(){
 function productSelectOptions(){return products.slice().sort((a,b)=>(a.display_order||999)-(b.display_order||999)).map(p=>`<option value="${p.id}">${esc(p.name)} · ${p.factory_rate==null?'Rate not listed':fmt(p.factory_rate)}</option>`).join('')}
 async function saveStock(e){e.preventDefault();const p=products.find(x=>x.id===$('#stockProduct').value);if(!p)return alert('Select a factory product');const v={route_id:route.id,product_id:p.id,product_name:p.name,quantity:+$('#qty').value,purchase_rate:+$('#rate').value};const {error}=await sb.from('route_loads').insert(v);if(error)return alert(error.message);$('#modal').classList.add('hidden');await refresh();render()}
 async function saveSale(e){e.preventDefault();const p=products.find(x=>x.id===$('#saleProduct').value);if(!p)return alert('Select a product');const {data:s,error}=await sb.from('sales').insert({route_id:route.id,dealer_id:$('#dealer').value,payment_type:$('#ptype').value}).select().single();if(error)return alert(error.message);const item={sale_id:s.id,product_name:p.name,quantity:+$('#sqty').value,purchase_rate:+$('#cost').value,sale_rate:+$('#srate').value};const {error:ie}=await sb.from('sale_items').insert(item);if(ie)return alert(ie.message);$('#modal').classList.add('hidden');await refresh();render()}
-async function saveExpense(e){e.preventDefault();const {error}=await sb.from('route_expenses').insert({route_id:route.id,category:$('#cat').value,description:$('#desc').value,amount:+$('#amount').value,paid_by:'Distributor'});if(error)return alert(error.message);$('#modal').classList.add('hidden');await refresh();render()}
+async function saveExpense(e){
+ e.preventDefault();
+ if(!route?.id)return alert('پہلے Current Route میں نیا روٹ شروع کریں، پھر خرچہ درج کریں۔');
+ const amount=Number($('#amount').value);
+ if(!Number.isFinite(amount)||amount<=0)return alert('درست رقم درج کریں۔');
+ const payload={route_id:route.id,category:$('#cat').value,description:$('#desc').value.trim(),amount,paid_by:'Distributor'};
+ const {error}=await sb.from('route_expenses').insert(payload);
+ if(error){console.error('Expense save failed',error);return alert('خرچہ محفوظ نہیں ہوا: '+error.message);}
+ $('#modal').classList.add('hidden');
+ await refresh();render();alert('خرچہ کامیابی سے محفوظ ہوگیا۔');
+}
 async function savePayment(e){e.preventDefault();const {error}=await sb.from('dealer_payments').insert({dealer_id:$('#paydealer').value,route_id:route?.id||null,amount:+$('#payamount').value,method:$('#method').value,notes:$('#paynotes').value});if(error)return alert(error.message);$('#modal').classList.add('hidden');await refresh();render()}
 async function startRoute(){const {error}=await sb.from('routes').insert({salesman:'Anayat Ali',route_name:'Piplan → Sargodha → Farooqabad',route_date:dateNow(),status:'open',vehicle_expense_paid_by:'Distributor'});if(error)return alert(error.message);await refresh();render()}
-async function closeRoute(){if(!confirm('کیا آپ یہ روٹ بند کرنا چاہتے ہیں؟'))return;const x=summary.find(v=>v.route_id===route.id)||{};const {error}=await sb.from('routes').update({status:'closed',end_date:dateNow(),closed_at:new Date().toISOString()}).eq('id',route.id);if(error)return alert(error.message);const {error:ce}=await sb.from('route_closings').insert({route_id:route.id,sales_total:x.sales_total||0,cost_of_goods:x.cost_of_goods||0,expenses_total:x.expenses_total||0,gross_profit:(x.sales_total||0)-(x.cost_of_goods||0),net_profit:x.net_profit||0,notes:'Closed from web app'});if(ce)alert(ce.message);await refresh();render()}
+async function closeRoute(){
+ if(!route?.id)return alert('کوئی فعال روٹ موجود نہیں۔');
+ if(!confirm('کیا آپ یہ روٹ بند کرنا چاہتے ہیں؟'))return;
+ const routeId=route.id;
+ const {data:x,error:se}=await sb.from('route_profit_summary').select('*').eq('route_id',routeId).maybeSingle();
+ if(se)return alert('روٹ کا حساب حاصل نہیں ہوسکا: '+se.message);
+ const {data:ex,error:ee}=await sb.from('route_expenses').select('amount').eq('route_id',routeId);
+ if(ee)return alert('روٹ کے اخراجات حاصل نہیں ہوسکے: '+ee.message);
+ const expenseTotal=(ex||[]).reduce((n,v)=>n+Number(v.amount||0),0);
+ const salesTotal=Number(x?.sales_total||0),costTotal=Number(x?.cost_of_goods||0);
+ const closing={route_id:routeId,sales_total:salesTotal,cost_of_goods:costTotal,expenses_total:expenseTotal,gross_profit:salesTotal-costTotal,net_profit:salesTotal-costTotal-expenseTotal,notes:'Closed from web app'};
+ const {error:ce}=await sb.from('route_closings').upsert(closing,{onConflict:'route_id'});
+ if(ce)return alert('Closing حساب محفوظ نہیں ہوا، روٹ ابھی کھلا ہے: '+ce.message);
+ const {data:updated,error}=await sb.from('routes').update({status:'closed',end_date:dateNow(),closed_at:new Date().toISOString()}).eq('id',routeId).eq('status','open').select('id').maybeSingle();
+ if(error)return alert('Closing حساب محفوظ ہے، مگر روٹ بند نہیں ہوا: '+error.message);
+ if(!updated)return alert('روٹ پہلے ہی بند ہو چکا ہے یا اب فعال نہیں ہے۔');
+ await refresh();render();alert('روٹ کامیابی سے بند ہوگیا۔');
+}
 function exportCSV(){const rows=[['Dealer','City','Phone','Opening balance','Current balance'],...balances.map(d=>[d.name,d.city,d.phone,d.opening_balance,d.current_balance])];const csv=rows.map(r=>r.map(v=>'"'+String(v??'').replaceAll('"','""')+'"').join(',')).join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'}));a.download='marco-dealer-balances.csv';a.click();URL.revokeObjectURL(a.href)}
 $('#nav').addEventListener('click',e=>{const b=e.target.closest('button[data-tab]');if(b){tab=b.dataset.tab;render()}});
 sb.auth.onAuthStateChange((_event,session)=>{if(!session){$('#app').classList.add('hidden');$('#login').classList.remove('hidden')}});
