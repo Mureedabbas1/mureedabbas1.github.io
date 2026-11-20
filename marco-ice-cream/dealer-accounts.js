@@ -36,8 +36,8 @@ function dealerNavigationList(){
  return ordered;
 }
 function whatsappNumbers(raw){
- const matches=String(raw||"").match(/(?:\\+?92|0)?3\\d{9}/g)||[];
- return [...new Set(matches.map(value=>{let n=value.replace(/\\D/g,"");if(n.startsWith("0"))n="92"+n.slice(1);else if(n.startsWith("3"))n="92"+n;return n;}).filter(n=>/^923\\d{9}$/.test(n)))];
+ const matches=String(raw||"").match(/(?:\+?92|0)?3\d{9}/g)||[];
+ return [...new Set(matches.map(value=>{let n=value.replace(/\D/g,"");if(n.startsWith("0"))n="92"+n.slice(1);else if(n.startsWith("3"))n="92"+n;return n;}).filter(n=>/^923\d{9}$/.test(n)))];
 }
 function detail(){
  const d=dealers.find(x=>x.id===window.__marcoDealerId);if(!d)return '<section class="panel">Dealer not found.</section>';
