@@ -16,7 +16,7 @@ function cityBlock(city,list){
 }
 dealerPage=function(){
  const all=dealers.filter(d=>d.active!==false), unassigned=all.filter(d=>!routeOf(d));
- let h='<section class="panel"><div class="toolbar"><div><h2>روٹ → شہر → ڈیلر اکاؤنٹس</h2><span class="small">ہر ڈیلر کے بل، وصولی اور بقایا الگ</span></div><input class="search" id="dealerSearch" placeholder="نام، شہر یا فون تلاش کریں" style="max-width:270px"></div><div class="grid"><div class="stat"><small>کل ڈیلرز</small><strong>'+all.length+'</strong></div><div class="stat"><small>روٹ 1</small><strong>'+all.filter(d=>routeOf(d)?.key==="r1").length+'</strong></div><div class="stat"><small>روٹ 2</small><strong>'+all.filter(d=>routeOf(d)?.key==="r2").length+'</strong></div><div class="stat"><small>تصدیق طلب</small><strong>'+unassigned.length+'</strong></div></div></section>';
+ let h='<section class="panel"><div class="toolbar"><div><h2>روٹ → شہر → ڈیلر اکاؤنٹس</h2><span class="small">ہر ڈیلر کے بل، وصولی اور بقایا الگ</span></div><input class="search" id="routeDealerSearch" placeholder="نام، شہر یا فون تلاش کریں" style="max-width:270px"></div><div class="grid"><div class="stat"><small>کل ڈیلرز</small><strong>'+all.length+'</strong></div><div class="stat"><small>روٹ 1</small><strong>'+all.filter(d=>routeOf(d)?.key==="r1").length+'</strong></div><div class="stat"><small>روٹ 2</small><strong>'+all.filter(d=>routeOf(d)?.key==="r2").length+'</strong></div><div class="stat"><small>تصدیق طلب</small><strong>'+unassigned.length+'</strong></div></div></section>';
  GROUPS.forEach(g=>{
   h+='<section class="panel"><div class="routebox"><strong>'+g.name+'</strong><span class="small">راستہ: '+g.cities.join(" → ")+'</span></div>';
   g.cities.forEach(city=>{const list=all.filter(d=>routeOf(d)?.key===g.key&&cityKey(d.city)===cityKey(city));if(list.length)h+=cityBlock(city,list);});
@@ -77,7 +77,7 @@ const oldBind=bindPage;
 bindPage=function(){
  oldBind();
  document.querySelectorAll("[data-open-dealer]").forEach(b=>b.onclick=()=>{window.__marcoDealerId=b.dataset.openDealer;tab="dealerDetail";render();});
- const search=$("#dealerSearch");if(search)search.addEventListener("input",()=>{const q=search.value.toLowerCase();document.querySelectorAll("[data-city-group]").forEach(x=>x.style.display=x.textContent.toLowerCase().includes(q)?"":"none");});
+ const search=$("#routeDealerSearch");if(search)search.addEventListener("input",()=>{const q=search.value.toLowerCase();document.querySelectorAll("[data-city-group]").forEach(x=>x.style.display=x.textContent.toLowerCase().includes(q)?"":"none");});
 };
 routePage=function(){
  const r=route||{},s=summary.find(x=>x.route_id===r.id)||{};
