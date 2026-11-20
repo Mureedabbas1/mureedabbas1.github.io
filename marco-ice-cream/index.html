@@ -306,7 +306,19 @@ closeRoute = async function(){
    if(error){btn.disabled=false;btn.textContent='Save Container Stock & Close Route';return alert('Container stock was not saved: '+error.message);}
   }
   $('#modal').classList.add('hidden');
-  await marcoOriginalCloseRoute();
+  const {data:x,error:se}=await sb.from('route_profit_summary').select('*').eq('route_id',routeId).maybeSingle();
+  if(se)return alert('Container stock is saved, but route totals could not be loaded: '+se.message);
+  const {data:ex,error:ee}=await sb.from('route_expenses').select('amount').eq('route_id',routeId);
+  if(ee)return alert('Container stock is saved, but route expenses could not be loaded: '+ee.message);
+  const expenseTotal=(ex||[]).reduce((n,v)=>n+Number(v.amount||0),0);
+  const salesTotal=Number(x?.sales_total||0),costTotal=Number(x?.cost_of_goods||0);
+  const closing={route_id:routeId,sales_total:salesTotal,cost_of_goods:costTotal,expenses_total:expenseTotal,gross_profit:salesTotal-costTotal,net_profit:salesTotal-costTotal-expenseTotal,notes:'Closed with container stock handover'};
+  const {error:ce}=await sb.from('route_closings').upsert(closing,{onConflict:'route_id'});
+  if(ce)return alert('Container stock is saved, but route closing failed: '+ce.message);
+  const {data:updated,error:re}=await sb.from('routes').update({status:'closed',end_date:dateNow(),closed_at:new Date().toISOString()}).eq('id',routeId).eq('status','open').select('id').maybeSingle();
+  if(re)return alert('Container stock and closing totals are saved, but route status could not be updated: '+re.message);
+  if(!updated)return alert('This route is already closed or no longer active.');
+  await refresh();render();alert('Route closed. Remaining stock has been saved in Container Stock for the next route.');
  };
 };
 </script>
