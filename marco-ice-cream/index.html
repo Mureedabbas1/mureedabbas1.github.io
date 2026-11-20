@@ -241,6 +241,15 @@ const marcoOriginalCloseRoute = closeRoute;
 const marcoOriginalDashboard = dashboard;
 const marcoOriginalRoutePage = routePage;
 const marcoOriginalBindPage = bindPage;
+const marcoOriginalStockPage = stockPage;
+stockPage = function(){
+ const base=marcoOriginalStockPage();
+ const pending=(routeReturns||[]).filter(x=>!x.carried_to_route_id&&Number(x.quantity)>0);
+ const grouped=products.map(p=>({p,qty:pending.filter(x=>x.product_id===p.id||(!x.product_id&&String(x.product_name||'').toLowerCase()===String(p.name||'').toLowerCase())).reduce((n,x)=>n+Number(x.quantity||0),0)})).filter(x=>x.qty>0);
+ const table=grouped.length?'<div class="tablewrap"><table><thead><tr><th>Ice Cream Item</th><th>Container Quantity</th><th>Factory Rate</th><th>Stock Value</th></tr></thead><tbody>'+grouped.map(x=>'<tr><td><strong>'+esc(x.p.name)+'</strong></td><td>'+x.qty+'</td><td>'+fmt(x.p.factory_rate||0)+'</td><td>'+fmt(x.qty*Number(x.p.factory_rate||0))+'</td></tr>').join('')+'</tbody></table></div>':'<p class="small">Container is currently empty. Returned stock from a completed route will appear here.</p>';
+ return base+'<section class="panel"><h2>Container Stock · Available for Next Route</h2>'+table+'</section>';
+};
+
 
 dashboard = function(){
  const base=marcoOriginalDashboard();
