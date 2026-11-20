@@ -107,4 +107,58 @@ function exportCSV(){const rows=[['Dealer','City','Phone','Opening balance','Cur
 $('#nav').addEventListener('click',e=>{const b=e.target.closest('button[data-tab]');if(b){tab=b.dataset.tab;render()}});
 sb.auth.onAuthStateChange((_event,session)=>{if(!session){$('#app').classList.add('hidden');$('#login').classList.remove('hidden')}});
 boot();if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
-</script><script src="./dealer-accounts.js?v=26"></script></body></html>
+</script><script src="./dealer-accounts.js?v=26"></script>
+<script>
+/* Separate completed-route archive and full route detail screen */
+let closedRouteRows=[], routeClosings=[], selectedClosedRouteId=null;
+const routeHistoryRefreshBase=refresh;
+refresh=async function(){
+ await routeHistoryRefreshBase();
+ const [rr,cc]=await Promise.all([
+  sb.from('routes').select('*').eq('status','closed').order('closed_at',{ascending:false}),
+  sb.from('route_closings').select('*')
+ ]);
+ if(rr.error)throw rr.error;
+ if(cc.error)throw cc.error;
+ closedRouteRows=rr.data||[];
+ routeClosings=cc.data||[];
+};
+const originalRenderWithHistory=render;
+render=function(){
+ nav();
+ const c=$('#content');
+ if(tab==='completed'){c.innerHTML=selectedClosedRouteId?completedRouteDetail(selectedClosedRouteId):completedRoutesPage();bindCompletedRoutes();return;}
+ originalRenderWithHistory();
+};
+function completedRoutesPage(){
+ const rows=closedRouteRows;
+ return '<section class="panel"><div class="toolbar"><div><h2>Completed Routes</h2><span class="small">Every closed route is saved here. Open any route to see its complete account.</span></div><span class="tag">'+rows.length+' Completed</span></div>'+
+ (rows.length?'<div class="tablewrap"><table><thead><tr><th>Date</th><th>Route</th><th>Salesman</th><th>Sales</th><th>Net Profit</th><th>Details</th></tr></thead><tbody>'+
+ rows.map(r=>{const s=summary.find(x=>x.route_id===r.id)||{},cl=routeClosings.find(x=>x.route_id===r.id)||{};return '<tr><td>'+esc(r.route_date||'—')+'</td><td><strong>'+esc(r.route_name||'Route')+'</strong></td><td>'+esc(r.salesman||'—')+'</td><td class="money">'+fmt(s.sales_total??cl.sales_total??0)+'</td><td class="money '+(Number(s.net_profit??cl.net_profit??0)>=0?'positive':'negative')+'">'+fmt(s.net_profit??cl.net_profit??0)+'</td><td><button class="btn alt" data-open-closed-route="'+r.id+'">View Details →</button></td></tr>';}).join('')+
+ '</tbody></table></div>':'<div class="empty">No completed routes yet. Closed routes will appear here automatically.</div>')+'</section>';
+}
+function completedRouteDetail(id){
+ const r=closedRouteRows.find(x=>x.id===id);if(!r)return '<section class="panel"><button class="btn alt" id="backCompletedRoutes">← Back</button><p class="empty">Route not found.</p></section>';
+ const s=summary.find(x=>x.route_id===id)||{},cl=routeClosings.find(x=>x.route_id===id)||{};
+ const routeLoads=loads.filter(x=>x.route_id===id),routeSales=sales.filter(x=>x.route_id===id),routeExpenses=expenses.filter(x=>x.route_id===id),returns=routeReturns.filter(x=>x.route_id===id);
+ const stock=routeStockRows(id);
+ const totalLoaded=stock.reduce((n,x)=>n+x.loaded,0),totalSold=stock.reduce((n,x)=>n+x.sold,0),totalReturned=stock.reduce((n,x)=>n+x.returned,0);
+ return '<section class="panel"><div class="toolbar"><div><button class="btn alt" id="backCompletedRoutes">← Back to Completed Routes</button><h2 style="margin-top:14px">Route Details</h2><div class="small">Closed on '+esc((r.closed_at||r.end_date||'').toString().slice(0,10))+'</div></div><span class="tag">CLOSED</span></div>'+
+ '<div class="routebox"><strong>'+esc(r.route_name||'Route')+'</strong><span class="small">Route date: '+esc(r.route_date||'—')+' · Salesman: '+esc(r.salesman||'—')+'</span></div>'+
+ '<div class="grid"><div class="stat"><small>Total Sales</small><strong>'+fmt(s.sales_total??cl.sales_total??0)+'</strong></div><div class="stat"><small>Expenses</small><strong>'+fmt(s.expenses_total??cl.expenses_total??0)+'</strong></div><div class="stat"><small>Cost of Goods</small><strong>'+fmt(s.cost_of_goods??cl.cost_of_goods??0)+'</strong></div><div class="stat"><small>Net Profit</small><strong class="'+(Number(s.net_profit??cl.net_profit??0)>=0?'positive':'negative')+'">'+fmt(s.net_profit??cl.net_profit??0)+'</strong></div></div>'+
+ '<section class="panel"><h2>Stock Account</h2><div class="grid"><div class="stat"><small>Loaded</small><strong>'+totalLoaded+'</strong></div><div class="stat"><small>Sold</small><strong>'+totalSold+'</strong></div><div class="stat"><small>Returned</small><strong>'+totalReturned+'</strong></div><div class="stat"><small>In Vehicle</small><strong>'+stock.reduce((n,x)=>n+x.remaining,0)+'</strong></div></div>'+
+ (stock.length?'<div class="tablewrap"><table><thead><tr><th>Item</th><th>Loaded</th><th>Sold</th><th>Returned</th><th>In Vehicle</th></tr></thead><tbody>'+stock.map(x=>'<tr><td><strong>'+esc(x.p.name)+'</strong></td><td>'+x.loaded+'</td><td>'+x.sold+'</td><td>'+x.returned+'</td><td>'+x.remaining+'</td></tr>').join('')+'</tbody></table></div>':'<p class="small">No stock records.</p>')+'</section>'+
+ '<section class="panel"><h2>Factory Stock Entries</h2><div class="tablewrap"><table><thead><tr><th>Product</th><th>Source</th><th>Quantity</th><th>Factory Rate</th><th>Total Cost</th></tr></thead><tbody>'+ (routeLoads.map(x=>'<tr><td>'+esc(x.product_name)+'</td><td>'+((x.source||'factory')==='carry_forward'?'Carried Forward':'Factory')+'</td><td>'+x.quantity+'</td><td>'+fmt(x.purchase_rate)+'</td><td>'+fmt(Number(x.quantity||0)*Number(x.purchase_rate||0))+'</td></tr>').join('')||'<tr><td colspan="5" class="empty">No factory stock entries.</td></tr>')+'</tbody></table></div></section>'+
+ '<section class="panel"><h2>Dealer Sales</h2><div class="tablewrap"><table><thead><tr><th>Date</th><th>Dealer</th><th>Items</th><th>Quantity</th><th>Bill Total</th><th>Payment</th></tr></thead><tbody>'+ (routeSales.map(x=>{const items=x.sale_items||[],total=items.reduce((n,i)=>n+Number(i.quantity||0)*Number(i.sale_rate||0),0);return '<tr><td>'+esc((x.sold_at||'').slice(0,10))+'</td><td>'+esc(dealers.find(d=>d.id===x.dealer_id)?.name||'—')+'</td><td>'+esc(items.map(i=>i.product_name).join(', '))+'</td><td>'+items.reduce((n,i)=>n+Number(i.quantity||0),0)+'</td><td class="money">'+fmt(total)+'</td><td>'+esc(x.payment_type||'—')+'</td></tr>';}).join('')||'<tr><td colspan="6" class="empty">No sales on this route.</td></tr>')+'</tbody></table></div></section>'+
+ '<section class="panel"><h2>Returned Stock</h2><div class="tablewrap"><table><thead><tr><th>Product</th><th>Returned Quantity</th><th>Factory Rate</th><th>Stock Value</th></tr></thead><tbody>'+ (returns.map(x=>'<tr><td>'+esc(x.product_name)+'</td><td>'+x.quantity+'</td><td>'+fmt(x.purchase_rate)+'</td><td>'+fmt(Number(x.quantity||0)*Number(x.purchase_rate||0))+'</td></tr>').join('')||'<tr><td colspan="4" class="empty">No returned stock recorded.</td></tr>')+'</tbody></table></div></section>'+
+ '<section class="panel"><h2>Route Expenses</h2><div class="tablewrap"><table><thead><tr><th>Date</th><th>Category</th><th>Description</th><th>Paid By</th><th>Amount</th></tr></thead><tbody>'+ (routeExpenses.map(x=>'<tr><td>'+esc(x.expense_date||'—')+'</td><td>'+esc(x.category||'—')+'</td><td>'+esc(x.description||'')+'</td><td>'+esc(x.paid_by||'—')+'</td><td class="money">'+fmt(x.amount)+'</td></tr>').join('')||'<tr><td colspan="5" class="empty">No expenses recorded.</td></tr>')+'</tbody></table></div></section>'+
+ '<section class="panel"><h2>Closing Notes</h2><p>'+esc(cl.notes||'No closing notes.')+'</p></section></section>';
+}
+function bindCompletedRoutes(){
+ $('#backCompletedRoutes')?.addEventListener('click',()=>{selectedClosedRouteId=null;render()});
+ document.querySelectorAll('[data-open-closed-route]').forEach(b=>b.addEventListener('click',()=>{selectedClosedRouteId=b.dataset.openClosedRoute;render()}));
+}
+const historyNavButton=document.createElement('button');historyNavButton.dataset.tab='completed';historyNavButton.textContent='Completed Routes';$('#nav').appendChild(historyNavButton);
+if(currentUser)refresh().then(()=>render()).catch(e=>alert('Completed route history could not be loaded: '+e.message));
+</script>
+</body></html>
