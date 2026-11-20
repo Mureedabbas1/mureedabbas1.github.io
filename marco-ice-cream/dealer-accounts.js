@@ -37,14 +37,19 @@ function dealerNavigationList(){
 }
 function whatsappNumbers(raw){
  const matches=String(raw||"").match(/(?:\+?92|0)?3\d{9}/g)||[];
- return [...new Set(matches.map(value=>{let n=value.replace(/\D/g,"");if(n.startsWith("0"))n="92"+n.slice(1);else if(n.startsWith("3"))n="92"+n;return n;}).filter(n=>/^923\d{9}$/.test(n)))];
+ return [...new Set(matches.map(value=>{
+  let n=String(value).trim().replace(/\D/g,"");
+  if(n.startsWith("0"))n="92"+n.slice(1);
+  else if(n.startsWith("3"))n="92"+n;
+  return n;
+ }).filter(n=>/^923\d{9}$/.test(n)))];
 }
 function detail(){
  const d=dealers.find(x=>x.id===window.__marcoDealerId);if(!d)return '<section class="panel">Dealer not found.</section>';
  const ss=sales.filter(x=>x.dealer_id===d.id), pp=payments.filter(x=>x.dealer_id===d.id);
  const totalPaid=pp.reduce((n,p)=>n+Number(p.amount||0),0);
  const dealerPhones=whatsappNumbers(d.phone);
- const accountMessage="*MARCO ICE CREAM*\\nSalesman: Anayat Ali\\nDate: "+dateNow()+"\\n\\n*Dealer Account Statement*\\n\\nDear "+d.name+",\\n\\nHere is your latest account statement:\\n\\n📍 City: "+(d.city||"")+"\\n💰 Outstanding Balance: Rs. "+amount(d)+"\\n🧾 Bills Number: "+ss.length+"\\n💵 Total Payments Received: Rs. "+totalPaid+"\\n\\nPlease review your account and let us know if you have any questions.\\n\\nFor any queries, contact:\\n📞 +923042156214\\n\\nThank you for your business!\\n\\n*MARCO ICE CREAM*";
+ const accountMessage="*MARCO ICE CREAM*\nSalesman: Anayat Ali\nDate: "+dateNow()+"\n\n*Dealer Account Statement*\n\nDear "+d.name+",\n\nHere is your latest account statement:\n\n📍 City: "+(d.city||"")+"\n💰 Outstanding Balance: Rs. "+amount(d)+"\n🧾 Bills Number: "+ss.length+"\n💵 Total Payments Received: Rs. "+totalPaid+"\n\nPlease review your account and let us know if you have any questions.\n\nFor any queries, contact:\n📞 +923042156214\n\nThank you for your business!\n\n*MARCO ICE CREAM*";
  const whatsappButtons=dealerPhones.map((phone,i)=>'<a class="btn alt" href="https://wa.me/'+phone+'?text='+encodeURIComponent(accountMessage)+'" target="_blank" rel="noopener">WhatsApp '+(i+1)+'</a>').join("");
  const navDealers=dealerNavigationList(),navIndex=navDealers.findIndex(x=>x.id===d.id);
  let h='<section class="panel"><button class="btn alt" id="backDealers">← All Dealers</button><div class="toolbar" style="margin:12px 0"><span class="small">Dealer '+(navIndex+1)+' of '+navDealers.length+'</span><div class="actions"><button class="btn alt" id="prevDealer" '+(navIndex<=0?'disabled':'')+'>← Previous</button><button class="btn alt" id="nextDealer" '+(navIndex<0||navIndex>=navDealers.length-1?'disabled':'')+'>Next →</button></div></div><div class="toolbar"><div><h2>'+esc(d.name)+'</h2><span class="small">'+esc(d.city||"")+' · '+esc(d.phone||"Phone not added")+'</span></div><div class="actions">'+(whatsappButtons||'<button class="btn alt" id="missingDealerPhone">Add WhatsApp Number</button>')+'<button class="btn" id="newDealerBill">＋ New Bill</button></div></div><div class="grid"><div class="stat"><small>Outstanding Balance</small><strong>'+fmt(amount(d))+'</strong></div><div class="stat"><small>Total Bills</small><strong>'+ss.length+'</strong></div><div class="stat"><small>Total Payments</small><strong>'+fmt(totalPaid)+'</strong></div><div class="stat"><small>Opening Balance</small><strong>'+fmt(d.opening_balance)+'</strong></div></div><button class="btn alt" id="receiveDealer">＋ Receive Payment</button></section>';
