@@ -290,4 +290,6 @@ saveBill=async function(e){
  const phone=String(d.phone||'').replace(/\D/g,'');if(phone&&confirm('Bill saved. Send it via WhatsApp?'))window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(message),'_blank','noopener');
 };
 
+/* If the original login boot completed before this extension loaded, refresh once with the extended data model. */
+if(currentUser)refresh().then(()=>render());
 })();
