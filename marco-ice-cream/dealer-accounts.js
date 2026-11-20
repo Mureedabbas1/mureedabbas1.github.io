@@ -29,8 +29,9 @@ function detail(){
  const d=dealers.find(x=>x.id===window.__marcoDealerId);if(!d)return '<section class="panel">Dealer not found.</section>';
  const ss=sales.filter(x=>x.dealer_id===d.id), pp=payments.filter(x=>x.dealer_id===d.id);
  const totalPaid=pp.reduce((n,p)=>n+Number(p.amount||0),0);
- const dealerPhone=String(d.phone||"").replace(/\\D/g,"");
- const accountMessage="MARCO ICE CREAM\\nDealer Account Statement\\nDealer: "+d.name+"\\nCity: "+(d.city||"")+"\\nOutstanding Balance: Rs "+amount(d)+"\\nTotal Bills: "+ss.length+"\\nTotal Payments: Rs "+totalPaid;
+ const dealerPhoneRaw=String(d.phone||"").replace(/\D/g,"");
+ const dealerPhone=dealerPhoneRaw.startsWith("0")?"92"+dealerPhoneRaw.slice(1):dealerPhoneRaw;
+ const accountMessage="*MARCO ICE CREAM*\nSalesman: Anayat Ali\nDate: "+dateNow()+"\n\n*Dealer Account Statement*\n\nDear "+d.name+",\n\nHere is your latest account statement:\n\n📍 City: "+(d.city||"")+"\n💰 Outstanding Balance: Rs. "+amount(d)+"\n🧾 Bills Number: "+ss.length+"\n💵 Total Payments Received: Rs. "+totalPaid+"\n\nPlease review your account and let us know if you have any questions.\n\nFor any queries, contact:\n📞 +923042156214\n\nThank you for your business!\n\n*MARCO ICE CREAM*";
  const whatsappHref=dealerPhone?"https://wa.me/"+dealerPhone+"?text="+encodeURIComponent(accountMessage):"";
  let h='<section class="panel"><button class="btn alt" id="backDealers">← All Dealers</button><div class="toolbar"><div><h2>'+esc(d.name)+'</h2><span class="small">'+esc(d.city||"")+' · '+esc(d.phone||"Phone not added")+'</span></div><div class="actions"><a class="btn alt" '+(whatsappHref?'href="'+whatsappHref+'" target="_blank" rel="noopener"':'href="#" id="missingDealerPhone"')+'>WhatsApp Account</a><button class="btn" id="newDealerBill">＋ New Bill</button></div></div><div class="grid"><div class="stat"><small>Outstanding Balance</small><strong>'+fmt(amount(d))+'</strong></div><div class="stat"><small>Total Bills</small><strong>'+ss.length+'</strong></div><div class="stat"><small>Total Payments</small><strong>'+fmt(totalPaid)+'</strong></div><div class="stat"><small>Opening Balance</small><strong>'+fmt(d.opening_balance)+'</strong></div></div><button class="btn alt" id="receiveDealer">＋ Receive Payment</button></section>';
  h+='<section class="panel"><h2>Bills & Items</h2><div class="tablewrap"><table><thead><tr><th>Date</th><th>Item</th><th>Quantity</th><th>Rate</th><th>Amount</th><th>WhatsApp</th></tr></thead><tbody>';
@@ -45,6 +46,7 @@ function bindDetail(){
  $("#backDealers").onclick=()=>{tab="dealers";render();};
  $("#newDealerBill").onclick=openBill;
  $("#receiveDealer").onclick=openReceive;
+ $("#missingDealerPhone")?.addEventListener("click",e=>{e.preventDefault();alert("Add the dealer's WhatsApp number to the dealer profile first.");});
 }
 function line(){
  return '<div class="bill-line" style="display:grid;grid-template-columns:1.5fr .6fr .8fr auto;gap:7px"><div class="field"><label>Item</label><select class="bp" required><option value="">Select</option>'+products.map(p=>'<option value="'+p.id+'">'+esc(p.name)+'</option>').join("")+'</select></div><div class="field"><label>Quantity</label><input class="bq" type="number" min="1" required></div><div class="field"><label>Dealers Rate</label><input class="br" type="number" min="0" step=".01" required></div><button type="button" class="close rm">×</button></div>';
