@@ -234,4 +234,81 @@ bindCompletedRoutes = function(){
  ['routeHistorySearch','routeDateFrom','routeDateTo'].forEach(id=>$('#'+id)?.addEventListener('input',filter));
 };
 </script>
+
+<script>
+/* Container stock flow: leftover from a closed route is carried into the next route. */
+const marcoOriginalCloseRoute = closeRoute;
+const marcoOriginalDashboard = dashboard;
+const marcoOriginalRoutePage = routePage;
+const marcoOriginalBindPage = bindPage;
+
+dashboard = function(){
+ const base=marcoOriginalDashboard();
+ const pending=(routeReturns||[]).filter(x=>!x.carried_to_route_id).reduce((n,x)=>n+Number(x.quantity||0),0);
+ return base + '<section class="panel"><h2>Container Stock</h2><div class="stat"><small>Available for next route</small><strong>'+pending+' units / packs</strong></div><p class="small">Stock returned from the previous route is kept here and automatically added when you start the next route.</p></section>';
+};
+routePage = function(){
+ return marcoOriginalRoutePage() + '<section class="panel"><h2>Route Stock Handover</h2><p class="small">When this route finishes, close it to move the unsold stock into Container Stock. The next route will receive it automatically.</p><button class="btn" id="containerCloseRoute" '+(route?.id?'':'disabled')+'>Return Remaining Stock to Container & Close Route</button></section>';
+};
+bindPage = function(){
+ marcoOriginalBindPage();
+ $('#containerCloseRoute')?.addEventListener('click',closeRoute);
+ $('#homeContainerCloseRoute')?.addEventListener('click',closeRoute);
+};
+
+startRoute = async function(){
+ if(route?.id)return alert('A route is already open. Close it before starting the next route.');
+ const {data:r,error}=await sb.from('routes').insert({
+  salesman:'Anayat Ali',route_name:'Piplan → Sargodha → Farooqabad',
+  route_date:dateNow(),status:'open',vehicle_expense_paid_by:'Distributor'
+ }).select().single();
+ if(error)return alert('Route could not be started: '+error.message);
+ const {data:pending,error:pe}=await sb.from('route_returns').select('*').is('carried_to_route_id',null).gt('quantity',0).order('created_at');
+ if(pe){await sb.from('routes').delete().eq('id',r.id);return alert('Container stock could not be loaded: '+pe.message);}
+ if(pending?.length){
+  const rows=pending.map(x=>({
+   route_id:r.id,product_id:x.product_id,product_name:x.product_name,
+   quantity:Number(x.quantity),purchase_rate:Number(x.purchase_rate||0),source:'carry_forward'
+  }));
+  const {error:le}=await sb.from('route_loads').insert(rows);
+  if(le){await sb.from('routes').delete().eq('id',r.id);return alert('Route started but carried stock could not be loaded. Please retry: '+le.message);}
+  const ids=pending.map(x=>x.id);
+  const {error:ue}=await sb.from('route_returns').update({carried_to_route_id:r.id}).in('id',ids);
+  if(ue){
+   await sb.from('route_loads').delete().eq('route_id',r.id);
+   await sb.from('routes').delete().eq('id',r.id);
+   return alert('Container stock transfer was not completed, so the route start was rolled back: '+ue.message);
+  }
+ }
+ await refresh();render();
+ alert(pending?.length?'Route started. Previous container stock has been added automatically.':'Route started. No old stock was waiting in the container.');
+};
+
+closeRoute = async function(){
+ if(!route?.id)return alert('There is no active route.');
+ const routeId=route.id;
+ const rows=routeStockRows(routeId).filter(x=>Number(x.remaining)>0);
+ const preview=rows.length?rows.map(x=>'<tr><td>'+esc(x.p.name)+'</td><td>'+x.remaining+'</td><td>'+fmt(x.p.factory_rate||0)+'</td></tr>').join(''):'<tr><td colspan="3">No remaining stock to return.</td></tr>';
+ openModal('Return Stock to Container & Close Route',
+  '<p class="small">The following unsold stock will be saved in Container Stock and automatically loaded on the next route.</p>'+
+  '<div class="tablewrap"><table><thead><tr><th>Ice Cream Item</th><th>Returned to Container</th><th>Factory Rate</th></tr></thead><tbody>'+preview+'</tbody></table></div>'+
+  '<p class="notice">This will close the current route. All dealer bills, payments and expenses will remain saved.</p>'+
+  '<div class="actions"><button type="button" class="btn alt" id="cancelContainerClose">Cancel</button><button type="button" class="btn" id="confirmContainerClose">Save Container Stock & Close Route</button></div>');
+ $('#cancelContainerClose').onclick=()=>$('#modal').classList.add('hidden');
+ $('#confirmContainerClose').onclick=async()=>{
+  const btn=$('#confirmContainerClose');btn.disabled=true;btn.textContent='Saving…';
+  if(rows.length){
+   const payload=rows.map(x=>({
+    route_id:routeId,product_id:x.p.id,product_name:x.p.name,
+    quantity:Number(x.remaining),purchase_rate:Number(x.p.factory_rate||0)
+   }));
+   const {error}=await sb.from('route_returns').insert(payload);
+   if(error){btn.disabled=false;btn.textContent='Save Container Stock & Close Route';return alert('Container stock was not saved: '+error.message);}
+  }
+  $('#modal').classList.add('hidden');
+  await marcoOriginalCloseRoute();
+ };
+};
+</script>
+
 </body></html>
