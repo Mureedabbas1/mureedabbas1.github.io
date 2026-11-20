@@ -109,4 +109,4 @@ function exportCSV(){const rows=[['Dealer','City','Phone','Opening balance','Cur
 $('#nav').addEventListener('click',e=>{const b=e.target.closest('button[data-tab]');if(b){tab=b.dataset.tab;render()}});
 sb.auth.onAuthStateChange((_event,session)=>{if(!session){$('#app').classList.add('hidden');$('#login').classList.remove('hidden')}});
 boot();if('serviceWorker'in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
-</script><script src="./dealer-accounts.js"></script></body></html>
+</script><script src="./dealer-accounts.js?v=24"></script></body></html>
