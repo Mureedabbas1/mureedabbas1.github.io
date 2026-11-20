@@ -110,7 +110,7 @@ boot();if('serviceWorker'in navigator)window.addEventListener('load',()=>navigat
 </script><script src="./dealer-accounts.js?v=26"></script>
 <script>
 /* Separate completed-route archive and full route detail screen */
-let closedRouteRows=[], routeClosings=[], historyReturns=[], selectedClosedRouteId=null;
+let closedRouteRows=[], routeClosings=[], historyReturns=[], selectedClosedRouteId=null, showArchivedRoutes=false;
 const routeHistoryRefreshBase=refresh;
 refresh=async function(){
  await routeHistoryRefreshBase();
@@ -173,14 +173,14 @@ if(currentUser)refresh().then(()=>render()).catch(e=>alert('Completed route hist
 <script>
 /* Route history: searchable date-wise and bill-number-wise archive */
 completedRoutesPage = function(){
- const rows=closedRouteRows;
+ const rows=closedRouteRows.filter(r=>showArchivedRoutes||!r.archived_at);
  const t=rows.reduce((a,r)=>{const n=routeNums(r);a.sales+=n.sales;a.exp+=n.exp;a.profit+=n.profit;a.factory+=n.factory;return a},{sales:0,exp:0,profit:0,factory:0});
- return '<section class="panel"><div class="toolbar"><div><h2>Route History</h2><span class="small">Every route is kept as a separate permanent record. Open any route to view its complete account.</span></div><span class="tag">'+rows.length+' Routes</span></div>'+
- '<div class="grid"><div class="stat"><small>Total Factory Cost</small><strong>'+fmt(t.factory)+'</strong></div><div class="stat"><small>Total Sales</small><strong>'+fmt(t.sales)+'</strong></div><div class="stat"><small>Total Expenses</small><strong>'+fmt(t.exp)+'</strong></div><div class="stat"><small>Total Net Profit</small><strong class="'+(t.profit>=0?'positive':'negative')+'">'+fmt(t.profit)+'</strong></div></div>'+
- '<section class="panel"><h2>Find Route / Bill</h2><div class="formgrid"><div class="field"><label>Route, City, Salesman or Bill Number</label><input id="routeHistorySearch" placeholder="Search route or bill number"></div><div class="field"><label>Start Date</label><input id="routeDateFrom" type="date"></div><div class="field"><label>End Date</label><input id="routeDateTo" type="date"></div></div><div class="small">Search by bill number to find the exact route that contains that bill.</div></section>'+
- (rows.length?'<div class="tablewrap"><table><thead><tr><th>Route Date</th><th>Route</th><th>Bill Numbers</th><th>Salesman</th><th>Status</th><th>Sales</th><th>Expenses</th><th>Net Profit</th><th>Details</th></tr></thead><tbody id="routeHistoryRows">'+
- rows.map(r=>{const n=routeNums(r),rs=sales.filter(x=>x.route_id===r.id),billNos=rs.map(x=>x.bill_number||x.id).join(', '),search=[r.route_name,r.salesman,billNos].join(' ').toLowerCase();return '<tr data-search="'+esc(search)+'" data-date="'+esc(r.route_date||'')+'"><td>'+esc(r.route_date||'—')+'</td><td><strong>'+esc(r.route_name||'Route')+'</strong></td><td style="white-space:normal;min-width:160px">'+(billNos?esc(billNos):'<span class="muted">No bills</span>')+'</td><td>'+esc(r.salesman||'')+'</td><td><span class="tag">'+(r.status==='open'?'OPEN':'CLOSED')+'</span></td><td class="money">'+fmt(n.sales)+'</td><td class="money">'+fmt(n.exp)+'</td><td class="money '+(n.profit>=0?'positive':'negative')+'">'+fmt(n.profit)+'</td><td><button class="btn alt" data-open-closed-route="'+r.id+'">View Details</button></td></tr>';}).join('')+
- '</tbody></table></div>':'<div class="empty">No routes have been recorded yet.</div>')+'</section>';
+ return '<section class="panel"><div class="toolbar"><div><h2>Route History</h2><span class="small">Archive keeps the complete route record safely. Delete is restricted to empty routes.</span></div><span class="tag">'+rows.length+' Routes</span></div>'+
+ '<div class="grid"><div class="stat"><small>Total Factory Cost</small><strong>'+fmt(t.factory)+'</strong></div><div class="stat"><small>Total Sales</small><strong>'+fmt(t.sales)+'</strong></div><div class="stat"><small>Total Expenses</small><strong>'+fmt(t.exp)+'</strong></div><div class="stat"><small>Total Net Profit</small><strong>'+fmt(t.profit)+'</strong></div></div>'+
+ '<section class="panel"><h2>Find Route / Bill</h2><div class="formgrid"><div class="field"><label>Route, City, Salesman or Bill Number</label><input id="routeHistorySearch" placeholder="Search route or bill number"></div><div class="field"><label>Start Date</label><input id="routeDateFrom" type="date"></div><div class="field"><label>End Date</label><input id="routeDateTo" type="date"></div></div><label style="display:flex;gap:8px;align-items:center;margin:8px 0"><input id="showArchivedRoutes" type="checkbox" '+(showArchivedRoutes?'checked':'')+'> Show archived routes</label></section>'+
+ (rows.length?'<div class="tablewrap"><table><thead><tr><th>Route Date</th><th>Route</th><th>Bill Numbers</th><th>Salesman</th><th>Status</th><th>Sales</th><th>Expenses</th><th>Net Profit</th><th>Details</th><th>Actions</th></tr></thead><tbody id="routeHistoryRows">'+
+ rows.map(r=>{const n=routeNums(r),rs=sales.filter(x=>x.route_id===r.id),billNos=rs.map(x=>x.bill_number||x.id).join(', '),search=[r.route_name,r.salesman,billNos].join(' ').toLowerCase();return '<tr data-search="'+esc(search)+'" data-date="'+esc(r.route_date||'')+'"><td>'+esc(r.route_date||'—')+'</td><td><strong>'+esc(r.route_name||'Route')+'</strong></td><td style="white-space:normal;min-width:160px">'+(billNos?esc(billNos):'<span class="muted">No bills</span>')+'</td><td>'+esc(r.salesman||'')+'</td><td><span class="tag">'+(r.archived_at?'ARCHIVED':r.status==='open'?'OPEN':'CLOSED')+'</span></td><td class="money">'+fmt(n.sales)+'</td><td class="money">'+fmt(n.exp)+'</td><td class="money '+(n.profit>=0?'positive':'negative')+'">'+fmt(n.profit)+'</td><td><button class="btn alt" data-open-closed-route="'+r.id+'">View Details</button></td><td><div class="actions">'+(r.archived_at?'<button class="btn alt" data-restore-route="'+r.id+'">Restore</button>':r.status==='closed'?'<button class="btn alt" data-archive-route="'+r.id+'">Archive</button>':'<span class="small">Close route first</span>')+'<button class="btn red" data-delete-route="'+r.id+'">Delete</button></div></td></tr>';}).join('')+
+ '</tbody></table></div>':'<div class="empty">No routes in this view.</div>')+'</section>';
 };
 completedRouteDetail = function(id){
  const r=closedRouteRows.find(x=>x.id===id);
@@ -208,8 +208,28 @@ completedRouteDetail = function(id){
  '<section class="panel"><h2>Closing Statement</h2><div class="grid"><div class="stat"><small>Sales</small><strong>'+fmt(cl.sales_total??totals.sales)+'</strong></div><div class="stat"><small>Expenses</small><strong>'+fmt(cl.expenses_total??totals.exp)+'</strong></div><div class="stat"><small>Gross Profit</small><strong>'+fmt(cl.gross_profit??(totals.sales-totals.cogs))+'</strong></div><div class="stat"><small>Net Profit</small><strong>'+fmt(cl.net_profit??totals.profit)+'</strong></div></div><p>'+esc(cl.notes||'No closing notes.')+'</p></section></section>';
 };
 bindCompletedRoutes = function(){
+ const content=$('#content');
+ content.onclick=async e=>{
+  const open=e.target.closest('[data-open-closed-route]');
+  if(open){selectedClosedRouteId=open.dataset.openClosedRoute;render();return;}
+  const archive=e.target.closest('[data-archive-route]'),restore=e.target.closest('[data-restore-route]'),del=e.target.closest('[data-delete-route]');
+  if(archive||restore){
+   const id=(archive||restore).dataset[archive?'archiveRoute':'restoreRoute'],action=archive?'archive':'restore';
+   if(!confirm(action==='archive'?'Archive this route? All bills and accounts will remain saved.':'Restore this route to Route History?'))return;
+   const {error}=await sb.from('routes').update({archived_at:action==='archive'?new Date().toISOString():null}).eq('id',id);
+   if(error){alert('Could not '+action+' route: '+error.message);return;} await refresh();render();return;
+  }
+  if(del){
+   const id=del.dataset.deleteRoute;
+   const hasRecords=sales.some(x=>x.route_id===id)||loads.some(x=>x.route_id===id)||expenses.some(x=>x.route_id===id)||payments.some(x=>x.route_id===id)||historyReturns.some(x=>x.route_id===id)||routeClosings.some(x=>x.route_id===id);
+   if(hasRecords){alert('This route has bills, payments, stock or expenses. Archive it instead to protect its financial history.');return;}
+   if(!confirm('Permanently delete this empty route? This cannot be undone.'))return;
+   const {error}=await sb.from('routes').delete().eq('id',id);
+   if(error){alert('Could not delete route: '+error.message);return;} await refresh();render();
+  }
+ };
  $('#backCompletedRoutes')?.addEventListener('click',()=>{selectedClosedRouteId=null;render()});
- document.querySelectorAll('[data-open-closed-route]').forEach(b=>b.addEventListener('click',()=>{selectedClosedRouteId=b.dataset.openClosedRoute;render()}));
+ $('#showArchivedRoutes')?.addEventListener('change',e=>{showArchivedRoutes=e.target.checked;render()});
  const filter=()=>{const q=($('#routeHistorySearch')?.value||'').trim().toLowerCase(),from=$('#routeDateFrom')?.value||'',to=$('#routeDateTo')?.value||'';document.querySelectorAll('#routeHistoryRows tr').forEach(row=>{const d=row.dataset.date||'',okText=!q||(row.dataset.search||'').includes(q),okFrom=!from||d>=from,okTo=!to||d<=to;row.classList.toggle('hidden',!(okText&&okFrom&&okTo));});};
  ['routeHistorySearch','routeDateFrom','routeDateTo'].forEach(id=>$('#'+id)?.addEventListener('input',filter));
 };
