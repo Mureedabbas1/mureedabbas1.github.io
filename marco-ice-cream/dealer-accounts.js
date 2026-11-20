@@ -90,4 +90,38 @@ startRoute=async function(){
  const {error}=await sb.from("routes").insert({salesman:"Anayat Ali",route_name:g.name,route_date:dateNow(),status:"open",vehicle_expense_paid_by:"Distributor",notes:"Route sequence: "+g.cities.join(" → ")});
  if(error)return alert(error.message);await refresh();render();
 };
+
+/* Simple guided home screen and route picker */
+dashboard=function(){
+ const recv=balances.reduce((n,d)=>n+Math.max(0,Number(d.current_balance||0)),0);
+ const pay=balances.reduce((n,d)=>n+Math.max(0,-Number(d.current_balance||0)),0);
+ const rs=summary.find(x=>x.route_id===route?.id)||{};
+ return '<section class="panel"><div class="toolbar"><div><h2 style="font-size:22px;margin-bottom:4px">Today at a glance</h2><div class="small">Follow the steps below to manage your ice cream deliveries.</div></div><span class="tag">'+(route?'Route in progress':'No active route')+'</span></div>'+
+ '<div class="routebox"><strong>'+(route?.route_name||'Start your delivery route')+'</strong><span class="small">'+(route?'Date: '+esc(route.route_date||'')+' · Salesperson: '+esc(route.salesman||'Anayat Ali'):'Choose Route 1 or Route 2 before recording stock, sales or expenses.')+'</span></div>'+
+ '<div class="grid"><div class="stat"><small>Total Dealers</small><strong>'+dealers.length+'</strong></div><div class="stat"><small>Money to Collect</small><strong>'+fmt(recv)+'</strong></div><div class="stat"><small>Money to Pay</small><strong>'+fmt(pay)+'</strong></div><div class="stat"><small>Route Sales</small><strong>'+fmt(rs.sales_total||0)+'</strong></div></div>'+
+ '<h2 style="margin:20px 0 10px">What would you like to do?</h2><div class="grid">'+
+ '<button class="btn" id="simpleStartRoute" style="min-height:74px" '+(route?'disabled':'')+'>① Start Route</button>'+
+ '<button class="btn alt" data-go="stock" style="min-height:74px">② Add Factory Stock</button>'+
+ '<button class="btn alt" data-go="sales" style="min-height:74px">③ Create Dealer Bill</button>'+
+ '<button class="btn alt" data-go="expenses" style="min-height:74px">④ Add Route Expense</button>'+
+ '<button class="btn alt" data-go="payments" style="min-height:74px">⑤ Receive Dealer Payment</button>'+
+ '<button class="btn dark" data-go="dealers" style="min-height:74px">Open Dealer Accounts</button></div>'+
+ '<section class="panel"><div class="toolbar"><h2>Route totals</h2><button class="btn alt" data-go="route">View Route Details</button></div><div class="grid"><div><small class="muted">Sales</small><strong>'+fmt(rs.sales_total||0)+'</strong></div><div><small class="muted">Expenses</small><strong>'+fmt(rs.expenses_total||0)+'</strong></div><div><small class="muted">Estimated Profit</small><strong>'+fmt(rs.net_profit||0)+'</strong></div></div></section></section>';
+};
+const previousSimpleBind=bindPage;
+bindPage=function(){
+ previousSimpleBind();
+ document.querySelector('#simpleStartRoute')?.addEventListener('click',startRoute);
+};
+startRoute=async function(){
+ openModal('Start a Delivery Route','<p class="small">Select the route you are delivering today.</p><form id="simpleRouteForm"><div class="field"><label>Delivery Route</label><select id="simpleRouteChoice" required><option value="">Choose a route</option><option value="1">Route 1 · Salam Interchange to Piplan</option><option value="2">Route 2 · Bhabra to Farooqabad</option></select></div><button class="btn" style="width:100%">Start This Route</button></form>');
+ document.querySelector('#simpleRouteForm').onsubmit=async e=>{
+  e.preventDefault();
+  const g=GROUPS[document.querySelector('#simpleRouteChoice').value==='1'?0:1];
+  const {error}=await sb.from('routes').insert({salesman:'Anayat Ali',route_name:g.name,route_date:dateNow(),status:'open',vehicle_expense_paid_by:'Distributor',notes:'Route sequence: '+g.cities.join(' → ')});
+  if(error)return alert(error.message);
+  document.querySelector('#modal').classList.add('hidden');await refresh();render();
+ };
+};
+
 })();
