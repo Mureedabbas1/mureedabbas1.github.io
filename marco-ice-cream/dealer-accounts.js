@@ -25,4 +25,60 @@ function bindLines(){document.querySelectorAll('.bill-line').forEach(r=>{r.query
 function openNewBill(){const d=dealers.find(x=>x.id===window.__marcoDealerId);openModal('نیا بل · '+d.name,'<form id="dealerBillForm"><div class="field"><label>بل کی تاریخ</label><input id="dealerBillDate" type="date" value="'+dateNow()+'" required></div><div id="billLines">'+lineHtml()+'</div><button type="button" class="btn alt" id="addBillLine">＋ مزید آئٹم</button><div class="field"><label>ادائیگی</label><select id="billPayType"><option value="credit">ادھار</option><option value="cash">Cash</option><option value="partial">جزوی</option></select></div><div class="field"><label>ابھی وصول رقم</label><input id="billPaid" type="number" min="0" value="0" required></div><div class="field"><label>نوٹس / بل نمبر</label><input id="billMemo"></div><button class="btn">بل محفوظ کریں</button></form>');$('#addBillLine').onclick=()=>{$('#billLines').insertAdjacentHTML('beforeend',lineHtml());bindLines();};bindLines();$('#dealerBillForm').onsubmit=saveBill;}
 async function saveBill(e){e.preventDefault();const d=dealers.find(x=>x.id===window.__marcoDealerId);const ls=[...document.querySelectorAll('.bill-line')].map(r=>({p:products.find(p=>p.id===r.querySelector('.billProduct').value),q:Number(r.querySelector('.billQty').value),rate:Number(r.querySelector('.billRate').value)}));if(ls.some(x=>!x.p||x.q<=0||x.rate<0||!Number.isFinite(x.rate)))return alert('آئٹم، مقدار اور ریٹ درست درج کریں۔');const total=ls.reduce((n,x)=>n+x.q*x.rate,0),paid=Number($('#billPaid').value||0),type=$('#billPayType').value;if(paid<0||paid>total||(type==='cash'&&paid!==total)||(type==='credit'&&paid!==0)||(type==='partial'&&(paid<=0||paid>=total)))return alert('ادائیگی کی رقم درست درج کریں۔');const {data:s,error}=await sb.from('sales').insert({route_id:route?.id||null,dealer_id:d.id,payment_type:type,sold_at:new Date($('#dealerBillDate').value+'T12:00:00').toISOString()}).select().single();if(error)return alert(error.message);const items=ls.map(x=>({sale_id:s.id,product_name:x.p.name,quantity:x.q,purchase_rate:Number(x.p.factory_rate||0),sale_rate:x.rate}));const {error:ie}=await sb.from('sale_items').insert(items);if(ie)return alert('بل محفوظ ہوا مگر آئٹمز نہیں: '+ie.message);if(paid>0){const {error:pe}=await sb.from('dealer_payments').insert({dealer_id:d.id,route_id:route?.id||null,amount:paid,method:'cash',notes:$('#billMemo').value||'Bill payment'});if(pe)return alert('بل محفوظ ہے، وصولی کی خرابی: '+pe.message);}$('#modal').classList.add('hidden');await refresh();render();const current=balances.find(x=>x.dealer_id===d.id)?.current_balance??d.current_balance??0;const msg='MARCO ICE CREAM\\nDealer: '+d.name+'\\nDate: '+String(s.sold_at||'').slice(0,10)+'\\nBill: '+s.id+'\\n\\nITEM DETAILS\\n'+items.map(i=>'• '+i.product_name+' | '+i.quantity+' × Rs '+Number(i.sale_rate).toLocaleString('en-PK')+' = Rs '+(Number(i.quantity)*Number(i.sale_rate)).toLocaleString('en-PK')).join('\\n')+'\\n\\nBill total: Rs '+total.toLocaleString('en-PK')+'\\nReceived now: Rs '+paid.toLocaleString('en-PK')+'\\nOutstanding balance: Rs '+Number(current).toLocaleString('en-PK')+'\\n\\nThank you!';const phone=String(d.phone||'').replace(/\\D/g,'');if(phone){if(confirm('بل محفوظ ہوگیا۔ WhatsApp پر ڈیلر کو بھیجیں؟'))window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(msg),'_blank','noopener');}else alert('بل محفوظ ہوگیا، مگر ڈیلر کا فون نمبر درج نہیں ہے۔');}
 function openReceive(){const d=dealers.find(x=>x.id===window.__marcoDealerId);openModal('رقم وصول کریں · '+d.name,'<form id="dealerReceiveForm"><div class="field"><label>رقم (PKR)</label><input id="receiveAmount" type="number" min="1" required></div><div class="field"><label>طریقہ</label><select id="receiveMethod"><option>cash</option><option>bank</option><option>easypaisa</option><option>jazzcash</option></select></div><div class="field"><label>نوٹس</label><input id="receiveMemo"></div><button class="btn">محفوظ کریں</button></form>');$('#dealerReceiveForm').onsubmit=async e=>{e.preventDefault();const {error}=await sb.from('dealer_payments').insert({dealer_id:d.id,route_id:route?.id||null,amount:Number($('#receiveAmount').value),method:$('#receiveMethod').value,notes:$('#receiveMemo').value});if(error)return alert(error.message);$('#modal').classList.add('hidden');await refresh();render();};}
+}
+/* Route-wise dealer organization: existing dealer IDs, bills and balances remain untouched. */
+const MARCO_ROUTE_GROUPS = [
+ {key:"route1",name:"Route 1 · Shahpur to Piplan",cities:["Shahpur","Bhera","Khushab","Johar Abad","Quaidabad","Piplan"]},
+ {key:"route2",name:"Route 2 · Bhabra to Farooqabad",cities:["Bhabra","Hilalpur","Bherowal","Midhranjha","Sial Mor","Pindi Bhattian","Sukheki","Kalyki Mandi","Khanqah Dogran","Farooqabad"]}
+];
+function marcoCityKey(v){return String(v||"").toLowerCase().replace(/[^a-z0-9]/g,"");}
+function marcoRouteForCity(city){
+ const k=marcoCityKey(city);
+ const aliases={"joharabad":"joharabad","sialmor":"sialmor","kalyki":"kalykimandi","kalykimandi":"kalykimandi"};
+ const normalized=aliases[k]||k;
+ for(const g of MARCO_ROUTE_GROUPS) if(g.cities.some(c=>marcoCityKey(c)===normalized)) return g;
+ return null;
+}
+function marcoBalance(d){return balances.find(x=>x.dealer_id===d.id)||d;}
+function marcoDealerSort(a,b){
+ const av=Number(marcoBalance(a).current_balance??a.opening_balance??0),bv=Number(marcoBalance(b).current_balance??b.opening_balance??0);
+ const group=v=>v>0?0:v===0?1:2;
+ return group(av)-group(bv)||(group(av)===0?bv-av:group(av)===2?av-bv:String(a.name||"").localeCompare(String(b.name||"")));
+}
+dealerPage=function(){
+ const active=dealers.filter(d=>d.active!==false);
+ const renderCity=(city,list)=>'<section class="panel" data-city-group="'+esc(city)+'"><div class="toolbar"><h2>'+esc(city)+' <span class="tag">'+list.length+' ڈیلر</span></h2><span class="small">شہر کا الگ حساب</span></div><div class="tablewrap"><table><thead><tr><th>ڈیلر</th><th>فون</th><th>ابتدائی بیلنس</th><th>موجودہ بقایا</th><th>اکاؤنٹ</th></tr></thead><tbody>'+list.sort(marcoDealerSort).map(d=>{const b=marcoBalance(d),v=Number(b.current_balance??d.opening_balance??0);return '<tr><td><strong>'+esc(d.name)+'</strong></td><td>'+esc(d.phone||"—")+'</td><td class="money">'+fmt(d.opening_balance)+'</td><td class="money '+(v<0?'negative':'positive')+'">'+fmt(v)+'</td><td><button class="btn alt" data-open-dealer="'+d.id+'" style="padding:7px 10px">اکاؤنٹ کھولیں →</button></td></tr>';}).join("")+'</tbody></table></div></section>';
+ let html='<section class="panel"><div class="toolbar"><div><h2>Route → City → Dealer Accounts</h2><span class="small">ہر ڈیلر کا الگ بل، وصولی اور بقایا</span></div><input class="search" id="dealerSearch" placeholder="ڈیلر، شہر یا فون تلاش کریں" style="max-width:270px"></div><div class="grid"><div class="stat"><small>کل ڈیلرز</small><strong>'+active.length+'</strong></div><div class="stat"><small>روٹ 1</small><strong>'+active.filter(d=>marcoRouteForCity(d.city)?.key==="route1").length+'</strong></div><div class="stat"><small>روٹ 2</small><strong>'+active.filter(d=>marcoRouteForCity(d.city)?.key==="route2").length+'</strong></div><div class="stat"><small>غیر مختص شہر</small><strong>'+active.filter(d=>!marcoRouteForCity(d.city)).length+'</strong></div></div></section>';
+ for(const g of MARCO_ROUTE_GROUPS){
+  const cityNames=[...g.cities];
+  const present=[...new Set(active.filter(d=>marcoRouteForCity(d.city)?.key===g.key).map(d=>d.city))];
+  html+='<section class="panel"><div class="routebox"><strong>'+g.name+'</strong><span class="small">ترتیب: '+g.cities.join(" → ")+'</span></div>';
+  for(const c of cityNames){const list=active.filter(d=>marcoRouteForCity(d.city)?.key===g.key&&marcoCityKey(d.city)===marcoCityKey(c));if(list.length)html+=renderCity(c,list);}
+  html+='</section>';
+ }
+ const unassigned=active.filter(d=>!marcoRouteForCity(d.city));
+ if(unassigned.length){const by={};unassigned.forEach(d=>(by[d.city||"شہر درج نہیں"]??=[]).push(d));html+='<section class="panel"><div class="routebox"><strong>غیر مختص / تصدیق طلب شہر</strong><span class="small">ان ڈیلرز کو روٹ 1 یا روٹ 2 میں شامل کرنے سے پہلے شہر کی تصدیق درکار ہے۔</span></div>'+Object.keys(by).sort().map(c=>renderCity(c,by[c])).join("")+'</section>';}
+ return html;
+};
+const marcoOldBindPage=bindPage;
+bindPage=function(){
+ marcoOldBindPage();
+ const search=$("#dealerSearch");
+ if(search) search.addEventListener("input",()=>{const q=search.value.toLowerCase();document.querySelectorAll("[data-city-group]").forEach(section=>{section.style.display=section.textContent.toLowerCase().includes(q)?"":"none";});});
+};
+routePage=function(){
+ const r=route||{}, s=summary.find(x=>x.route_id===r.id)||{};
+ const cards=MARCO_ROUTE_GROUPS.map(g=>'<div class="routebox"><strong>'+g.name+'</strong><span class="small">'+g.cities.join(" → ")+'</span><div class="small" style="margin-top:8px">'+dealers.filter(d=>marcoRouteForCity(d.city)?.key===g.key).length+' رجسٹرڈ ڈیلرز</div></div>').join("");
+ return '<section class="panel"><div class="toolbar"><h2>روٹ مینجمنٹ</h2><span class="tag">'+(r.status||"کوئی فعال روٹ نہیں")+'</span></div><div class="routebox"><strong>'+(r.route_name||"ابھی کوئی روٹ شروع نہیں")+'</strong><span class="small">سیلز مین: '+(r.salesman||"Anayat Ali")+' · تاریخ: '+(r.route_date||"—")+'</span></div><div class="actions" style="margin:14px 0"><button class="btn alt" id="routeNew" '+(r.id?'disabled':'')+'>نیا روٹ شروع کریں</button><button class="btn" id="routeClose" '+(r.id?'':'disabled')+'>روٹ بند کریں اور حساب بنائیں</button><button class="btn alt" data-go="dealers">روٹ کے ڈیلرز دیکھیں</button></div><div class="grid"><div class="stat"><small>سیلز</small><strong>'+fmt(s.sales_total)+'</strong></div><div class="stat"><small>اخراجات</small><strong>'+fmt(s.expenses_total)+'</strong></div><div class="stat"><small>اندازاً منافع</small><strong>'+fmt(s.net_profit)+'</strong></div><div class="stat"><small>فیکٹری اسٹاک انٹریز</small><strong>'+loads.filter(x=>x.route_id===r.id).length+'</strong></div></div><h2>مقررہ روٹس</h2><div class="split">'+cards+'</div><h2 style="margin-top:18px">روٹ ہسٹری</h2><div class="tablewrap"><table><thead><tr><th>تاریخ</th><th>روٹ</th><th>سیلز مین</th><th>حالت</th></tr></thead><tbody>'+summary.map(x=>'<tr><td>'+esc(x.route_date||"")+'</td><td>'+esc(x.route_name||"")+'</td><td>'+esc(x.salesman||"")+'</td><td>'+esc(x.status||"")+'</td></tr>').join("")+'</tbody></table></div></section>';
+};
+startRoute=async function(){
+ const choice=prompt("کون سا روٹ شروع کرنا ہے؟\n1 = Shahpur → Piplan\n2 = Bhabra → Farooqabad","1");
+ if(choice===null)return;
+ const g=choice.trim()==="1"?MARCO_ROUTE_GROUPS[0]:choice.trim()==="2"?MARCO_ROUTE_GROUPS[1]:null;
+ if(!g)return alert("صرف 1 یا 2 منتخب کریں۔");
+ const {error}=await sb.from("routes").insert({salesman:"Anayat Ali",route_name:g.name,route_date:dateNow(),status:"open",vehicle_expense_paid_by:"Distributor",notes:"Route sequence: "+g.cities.join(" → ")});
+ if(error)return alert(error.message);
+ await refresh();render();
+};
+
 })();
