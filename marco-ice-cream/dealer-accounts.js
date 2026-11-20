@@ -264,7 +264,14 @@ function openRouteReturnClose(){
   if(mismatch)return alert('Stock does not balance for '+mismatch.row.p.name+'. Loaded must equal sold + returned.');
   const routeId=route.id;
   const payload=entries.filter(x=>x.quantity>0).map(x=>({route_id:routeId,product_id:x.product_id,product_name:x.row.p.name,quantity:x.quantity,purchase_rate:Number(x.row.p.factory_rate||0)}));
-  if(payload.length){const {error}=await sb.from('route_returns').upsert(payload,{onConflict:'route_id,product_id'});if(error)return alert('Return stock was not saved: '+error.message);}
+  for(const item of payload){
+   const {data:existing,error:findError}=await sb.from('route_returns').select('id').eq('route_id',routeId).eq('product_id',item.product_id).maybeSingle();
+   if(findError)return alert('Could not check existing return: '+findError.message);
+   const result=existing
+    ?await sb.from('route_returns').update({product_name:item.product_name,quantity:item.quantity,purchase_rate:item.purchase_rate,carried_to_route_id:null}).eq('id',existing.id)
+    :await sb.from('route_returns').insert(item);
+   if(result.error)return alert('Return stock was not saved: '+result.error.message);
+  }
   const {data:totals,error:te}=await sb.from('route_profit_summary').select('*').eq('route_id',routeId).maybeSingle();
   if(te)return alert('Could not calculate route totals: '+te.message);
   const {data:ex,error:ee}=await sb.from('route_expenses').select('amount').eq('route_id',routeId);
