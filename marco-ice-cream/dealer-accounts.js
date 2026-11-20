@@ -320,7 +320,7 @@ saveBill=async function(e){
  const {error:ie}=await sb.from('sale_items').insert(rows);if(ie)return alert('Bill created, but items could not be saved: '+ie.message);
  if(paid>0){const {error:pe}=await sb.from('dealer_payments').insert({dealer_id:d.id,route_id:route.id,amount:paid,method:'cash',notes:'Bill payment · '+($('#bmemo').value||s.id)});if(pe)return alert('Bill saved, but payment could not be saved: '+pe.message);}
  $('#modal').classList.add('hidden');await refresh();render();
- const message='MARCO ICE CREAM\nDealer: '+d.name+'\nDate: '+$('#bdate').value+'\nBill: '+s.id+'\n'+rows.map(x=>x.product_name+' | '+x.quantity+' x Rs '+x.sale_rate+' = Rs '+(x.quantity*x.sale_rate)).join('\n')+'\nBill total: Rs '+total+'\nReceived: Rs '+paid+'\nOutstanding: Rs '+amount(d);
+ const message='MARCO ICE CREAM\nDealer: '+d.name+'\nDate: '+$('#bdate').value+'\nBill: '+(s.bill_number||s.id)+'\n'+rows.map(x=>x.product_name+' | '+x.quantity+' x Rs '+x.sale_rate+' = Rs '+(x.quantity*x.sale_rate)).join('\n')+'\nBill total: Rs '+total+'\nReceived: Rs '+paid+'\nOutstanding: Rs '+amount(d);
  const phone=String(d.phone||'').replace(/\D/g,'');if(phone&&confirm('Bill saved. Send it via WhatsApp?'))window.open('https://wa.me/'+phone+'?text='+encodeURIComponent(message),'_blank','noopener');
 };
 
