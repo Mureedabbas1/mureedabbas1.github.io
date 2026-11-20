@@ -1,4 +1,4 @@
-const CACHE='marco-icecream-v17';
+const CACHE='marco-icecream-v18';
 const ASSETS=['./','./index.html','./dealer-accounts.js','./manifest.webmanifest','./icon.svg','../Marco%20Ice%20Careem%20Logo.png'];
 self.addEventListener('install',event=>event.waitUntil((async()=>{const cache=await caches.open(CACHE);await cache.addAll(ASSETS);await self.skipWaiting()})()));
 self.addEventListener('activate',event=>event.waitUntil((async()=>{const keys=await caches.keys();await Promise.all(keys.filter(key=>key!==CACHE).map(key=>caches.delete(key)));await self.clients.claim()})()));
