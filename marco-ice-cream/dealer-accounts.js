@@ -227,7 +227,7 @@ function openRouteReturnClose(){
  if(!rows.length)return alert('No stock has been loaded on this route.');
  const body='<p class="small">Enter the quantity physically returned in the vehicle. The suggested quantity is loaded minus sold. All quantities must balance before the route can close.</p>'+
  '<div class="tablewrap"><table><thead><tr><th>Item</th><th>Loaded</th><th>Sold</th><th>Return Quantity</th></tr></thead><tbody>'+
- rows.map(x=>'<tr><td>'+esc(x.p.name)+'</td><td>'+x.loaded+'</td><td>'+x.sold+'</td><td><input class="returnQty" data-product="'+x.p.id+'" type="number" min="0" step="0.01" value="'+Math.max(0,x.remaining)+'" style="width:100px"></td></tr>').join('')+
+ rows.map(x=>'<tr><td>'+esc(x.p.name)+'</td><td>'+x.loaded+'</td><td>'+x.sold+'</td><td><input class="returnQty" data-product="'+x.p.id+'" type="number" min="0" step="0.01" value="'+Math.max(0,x.returned+x.remaining)+'" style="width:100px"></td></tr>').join('')+
  '</tbody></table></div><div class="field"><label>Closing Notes (optional)</label><input id="routeClosingNotes" placeholder="Any stock difference or notes"></div><button class="btn" id="saveRouteReturns" style="width:100%">Save Returns & Close Route</button>';
  openModal('Returned Stock & Route Closing',body);
  $('#saveRouteReturns').onclick=async()=>{
