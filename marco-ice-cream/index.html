@@ -110,18 +110,21 @@ boot();if('serviceWorker'in navigator)window.addEventListener('load',()=>navigat
 </script><script src="./dealer-accounts.js?v=26"></script>
 <script>
 /* Separate completed-route archive and full route detail screen */
-let closedRouteRows=[], routeClosings=[], selectedClosedRouteId=null;
+let closedRouteRows=[], routeClosings=[], historyReturns=[], selectedClosedRouteId=null;
 const routeHistoryRefreshBase=refresh;
 refresh=async function(){
  await routeHistoryRefreshBase();
- const [rr,cc]=await Promise.all([
+ const [rr,cc,rt]=await Promise.all([
   sb.from('routes').select('*').order('created_at',{ascending:false}),
-  sb.from('route_closings').select('*')
+  sb.from('route_closings').select('*'),
+  sb.from('route_returns').select('*')
  ]);
  if(rr.error)throw rr.error;
  if(cc.error)throw cc.error;
+ if(rt.error)throw rt.error;
  closedRouteRows=rr.data||[];
  routeClosings=cc.data||[];
+ historyReturns=rt.data||[];
 };
 const originalRenderWithHistory=render;
 render=function(){
@@ -160,7 +163,8 @@ function completedRouteDetail(id){
 }
 function bindCompletedRoutes(){
  $('#backCompletedRoutes')?.addEventListener('click',()=>{selectedClosedRouteId=null;render()});
- document.querySelectorAll('[data-open-closed-route]').forEach(b=>b.addEventListener('click',()=>{selectedClosedRouteId=b.dataset.openClosedRoute;render()}));
+ const content=$('#content');
+ content?.addEventListener('click',e=>{const b=e.target.closest('[data-open-closed-route]');if(b){selectedClosedRouteId=b.dataset.openClosedRoute;render();}}, {once:true});
 }
 const historyNavButton=document.createElement('button');historyNavButton.dataset.tab='completed';historyNavButton.textContent='Route History';$('#nav').insertBefore(historyNavButton,$('#nav').children[1]||null);
 if(currentUser)refresh().then(()=>render()).catch(e=>alert('Completed route history could not be loaded: '+e.message));
@@ -182,8 +186,14 @@ completedRouteDetail = function(id){
  const r=closedRouteRows.find(x=>x.id===id);
  if(!r)return '<section class="panel"><button class="btn alt" id="backCompletedRoutes">Back</button><p class="empty">Route not found.</p></section>';
  const s=summary.find(x=>x.route_id===id)||{},cl=routeClosings.find(x=>x.route_id===id)||{};
- const routeLoads=loads.filter(x=>x.route_id===id),routeSales=sales.filter(x=>x.route_id===id),routeExpenses=expenses.filter(x=>x.route_id===id),returns=routeReturns.filter(x=>x.route_id===id),routePayments=payments.filter(x=>x.route_id===id);
- const stock=routeStockRows(id), totalLoaded=stock.reduce((n,x)=>n+x.loaded,0),totalSold=stock.reduce((n,x)=>n+x.sold,0),totalReturned=stock.reduce((n,x)=>n+x.returned,0);
+ const routeLoads=loads.filter(x=>x.route_id===id),routeSales=sales.filter(x=>x.route_id===id),routeExpenses=expenses.filter(x=>x.route_id===id),returns=historyReturns.filter(x=>x.route_id===id),routePayments=payments.filter(x=>x.route_id===id);
+ const stock=products.filter(p=>p.active!==false).map(p=>{
+  const loaded=routeLoads.filter(x=>x.product_id===p.id||(!x.product_id&&String(x.product_name||'').toLowerCase()===String(p.name||'').toLowerCase())).reduce((n,x)=>n+Number(x.quantity||0),0);
+  const sold=routeSales.flatMap(x=>x.sale_items||[]).filter(x=>x.product_id===p.id||(!x.product_id&&String(x.product_name||'').toLowerCase()===String(p.name||'').toLowerCase())).reduce((n,x)=>n+Number(x.quantity||0),0);
+  const returned=returns.filter(x=>x.product_id===p.id).reduce((n,x)=>n+Number(x.quantity||0),0);
+  return {p,loaded,sold,returned,remaining:loaded-sold-returned};
+ }).filter(x=>x.loaded||x.sold||x.returned);
+ const totalLoaded=stock.reduce((n,x)=>n+x.loaded,0),totalSold=stock.reduce((n,x)=>n+x.sold,0),totalReturned=stock.reduce((n,x)=>n+x.returned,0);
  const totals=routeNums(r);
  return '<section class="panel"><div class="toolbar"><div><button class="btn alt" id="backCompletedRoutes">Back to Route History</button><h2 style="margin-top:14px">Route Details</h2><div class="small">'+(r.status==='open'?'Route is currently OPEN':'Closed on '+esc((r.closed_at||r.end_date||'').toString().slice(0,10)))+'</div></div><span class="tag">'+(r.status==='open'?'OPEN':'CLOSED')+'</span></div>'+
  '<div class="routebox"><strong>'+esc(r.route_name||'Route')+'</strong><span class="small">Route date: '+esc(r.route_date||'—')+' · Salesman: '+esc(r.salesman||'—')+'</span></div>'+
